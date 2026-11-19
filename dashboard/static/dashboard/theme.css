@@ -1,0 +1,85 @@
+/* Shared application theme. */
+:root {
+    --accent: #0869cf;
+    --accent-hover: #0755a5;
+    --accent-soft: #edf5ff;
+    --accent-border: #bdd8f5;
+}
+body {
+    color: #25364a;
+    background-color: #f5f7fb;
+    background-image: linear-gradient(#f5f7fbf7, #f5f7fbf7), url("uew-entrance.png");
+    font-family: Tahoma, Geneva, sans-serif;
+}
+header { background: white; border-bottom: 1px solid #e0e6ef; }
+.topbar { min-height: 72px; gap: 1rem; padding-block: .75rem; }
+.topbar .brand { color: #14365d; font-size: clamp(.95rem, 1.5vw, 1.15rem); }
+.topbar .profile-link { margin-left: auto; }
+.portrait-placeholder { background: #edf5ff; border-color: #bdd8f5; }
+.portrait-placeholder::before, .portrait-placeholder::after { background: #58738f; }
+.container { max-width: 82rem; }
+main { padding-block: 1.5rem 3rem; }
+.dashboard-layout { grid-template-columns: 14rem minmax(0, 1fr); gap: 1.5rem; }
+.dashboard-sidebar {
+    background: white;
+    border: 1px solid #e0e6ef;
+    border-radius: .7rem;
+    padding: .65rem;
+    box-shadow: 0 3px 12px #263f5b06;
+}
+.dashboard-sidebar .dashboard-brand { color: #14365d; padding: .75rem; border-bottom: 1px solid #edf0f5; margin-bottom: .5rem; }
+.dashboard-brand strong { color: var(--accent); }
+.dashboard-sidebar a { color: #465a70; padding: .7rem .8rem; border-radius: .45rem; font-size: .9rem; }
+.dashboard-sidebar a:hover { background: #f0f5fb; color: #164a7e; }
+.dashboard-sidebar a[aria-current="page"] { background: var(--accent); color: white; }
+.sidebar-signout { border-color: #e0e6ef; margin-top: 1rem; }
+.dashboard-content h1 { font-size: clamp(1.45rem, 3vw, 2rem); letter-spacing: -.025em; }
+h2 { font-size: 1.2rem; }
+h3 { font-size: 1.05rem; }
+.panel { border-color: #e0e6ef; border-radius: .7rem; box-shadow: 0 3px 12px #263f5b05; }
+.overview-feature, .overview-next {
+    background: linear-gradient(115deg, #0869cf, #0655ac);
+    color: white;
+    border: 0;
+    border-radius: .8rem;
+}
+.overview-feature a:not(.button), .overview-next a:not(.button) { color: white; }
+.overview-next .button, .overview-feature .button { background: white; color: #0755a5; }
+.overview-next .button:hover, .overview-feature .button:hover { background: #e7f0fc; color: #0755a5; }
+.overview-feature .learning-art { background: #ffffff18; box-shadow: .35rem .45rem 0 #ffffff14; font-size: clamp(2rem, 5vw, 3.5rem); }
+.overview-metrics strong, .admin-stats strong { color: #0755a5; }
+.overview-metrics li, .admin-stats .panel { border-color: #e0e6ef; }
+.overview-metrics li:nth-child(2), .admin-stats .panel:nth-child(2) { background: #f0f5ff; }
+.overview-metrics li:nth-child(3), .admin-stats .panel:nth-child(3) { background: #fff8ec; }
+.overview-metrics li:nth-child(4), .admin-stats .panel:nth-child(4) { background: #f3f5fa; }
+.dashboard-roster { background: white; border-radius: .6rem; }
+.dashboard-roster > li { padding: .9rem; }
+.dashboard-roster li + li { border-color: #edf0f5; }
+.current-lesson { background: #edf5ff; }
+main progress { accent-color: #0869cf !important; }
+.form-panel { width: 100%; max-width: 43rem; margin-inline: auto; }
+input:not([type="hidden"]), select, textarea { border-color: #cbd6e2; background: #fff; border-radius: .4rem; }
+button, .button, .dashboard-page .button { border-radius: .45rem; font-size: .9rem; }
+.auth-layout { border-radius: .85rem; }
+.auth-intro { background: linear-gradient(#084a94aa, #063064cc), url("uew-entrance.png") center / cover; }
+.auth-art { display: none; }
+.auth-wordmark strong { font-size: clamp(2rem, 4vw, 3.5rem); }
+.site-footer { font-size: .8rem; color: #61758a; }
+
+@media (max-width: 800px) {
+    .dashboard-layout { grid-template-columns: 11.5rem minmax(0, 1fr); gap: 1rem; }
+}
+@media (max-width: 680px) {
+    .dashboard-layout { grid-template-columns: minmax(0, 1fr); }
+    .topbar { min-height: 60px; }
+    .topbar .brand { flex-basis: auto; flex: 1; }
+    main { padding-top: 1rem; }
+    .overview-metrics, .admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .overview-metrics li a, .admin-stats .panel { padding: .85rem; }
+    .dashboard-sidebar { position: static; }
+    .dashboard-menu-toggle { min-height: 44px; }
+    .auth-intro { min-height: 150px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto !important; }
+}
