@@ -32,7 +32,7 @@
             // Retry after temporary connection failures.
         } finally { checking = false; }
     }
-    window.setInterval(check, 60000);
+    window.setInterval(check, 10000);
     document.addEventListener("visibilitychange", check);
     window.addEventListener("pageshow", check);
 })();
