@@ -1,22 +1,50 @@
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const button = document.querySelector('.dashboard-menu-toggle');
-        const sidebar = document.getElementById('dashboard-navigation');
-        if (!button || !sidebar) return;
+document.addEventListener('DOMContentLoaded', () => {
+    const trigger = document.querySelector('.dashboard-menu-toggle');
+    const sidebar = document.getElementById('dashboard-navigation');
+    if (!trigger || !sidebar) return;
+    const mobile = window.matchMedia('(max-width: 680px)');
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'menu-close';
+    close.textContent = '×';
+    close.setAttribute('aria-label', 'Close menu');
+    sidebar.prepend(close);
+    const backdrop = document.createElement('div');
+    backdrop.className = 'menu-backdrop';
+    backdrop.hidden = true;
+    document.body.append(backdrop);
 
-        const setOpen = (open) => {
-            button.setAttribute('aria-expanded', String(open));
-            sidebar.classList.toggle('menu-open', open);
-        };
-        button.addEventListener('click', () => {
-            setOpen(button.getAttribute('aria-expanded') === 'false');
-        });
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') {
-                setOpen(false);
-                button.focus();
+    const setOpen = (open, restoreFocus = true) => {
+        trigger.setAttribute('aria-expanded', String(open));
+        sidebar.classList.toggle('menu-open', open);
+        backdrop.hidden = !open;
+        document.body.classList.toggle('menu-is-open', open);
+        if (open) close.focus();
+        else if (restoreFocus) trigger.focus();
+    };
+    trigger.addEventListener('click', () => setOpen(trigger.getAttribute('aria-expanded') !== 'true'));
+    close.addEventListener('click', () => setOpen(false));
+    backdrop.addEventListener('click', () => setOpen(false));
+    document.addEventListener('keydown', (event) => {
+        if (trigger.getAttribute('aria-expanded') !== 'true') return;
+        if (event.key === 'Escape') setOpen(false);
+        if (event.key === 'Tab') {
+            const controls = [...sidebar.querySelectorAll('a[href], button, input')].filter(
+                element => element.getClientRects().length > 0 && element.type !== 'hidden'
+            );
+            const first = controls[0];
+            const last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
             }
-        });
-        document.documentElement.classList.add('dashboard-menu-ready');
+        }
     });
+    mobile.addEventListener('change', () => setOpen(false, false));
+    document.documentElement.classList.add('dashboard-menu-ready');
+});
 </script>
