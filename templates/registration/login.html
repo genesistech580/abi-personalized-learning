@@ -1,0 +1,8 @@
+{% extends "registration/base.html" %}
+{% block title %}Sign in | ABI's AI-Powered Personalized Learning{% endblock %}
+{% block heading %}Sign in{% endblock %}
+{% block hidden_fields %}<input type="hidden" name="next" value="{{ next }}">{% endblock %}
+{% block submit %}Sign in{% endblock %}
+{% block alternate %}<a href="{% url 'register' %}">Create student account</a>{% endblock %}
+
+

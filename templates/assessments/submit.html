@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ assessment.title }} | ABI's AI-Powered Personalized Learning{% endblock %}
+{% block content %}
+<article class="panel form-panel">
+    <h1>{{ assessment.title }}</h1>
+    {% if assessment.instructions %}{{ assessment.instructions|linebreaks }}{% endif %}
+    {% if assessment.due_at %}<p>Due {{ assessment.due_at|date:"M j, Y H:i T" }}</p>{% endif %}
+    {% if submission %}<p>Submitted {{ submission.updated_at|date:"M j, Y H:i T" }}</p>{% endif %}
+    {% if submission and submission.score is not None %}
+    <h2>Grade: {{ submission.score }}/100</h2>
+    {% if submission.feedback %}{{ submission.feedback|linebreaks }}{% endif %}
+    <h2>Your answer</h2>
+    {{ submission.answer|linebreaks }}
+    <a href="{% url 'dashboard' %}">Back</a>
+    {% else %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">{% if submission %}Update submission{% else %}Submit{% endif %}</button>
+        <a href="{% url 'dashboard' %}">Back</a>
+    </form>
+    {% endif %}
+</article>
+{% endblock %}

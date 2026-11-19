@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Lecturer dashboard | ABI TECH{% endblock %}
+{% block main_class %} dashboard-page{% endblock %}
+{% block header_logout %}{% endblock %}
+{% block content %}
+{% include "dashboard/menu_script.html" %}
+<div class="dashboard-layout">
+    <button class="dashboard-menu-toggle" type="button" aria-controls="dashboard-navigation" aria-expanded="false">Menu</button>
+    <nav id="dashboard-navigation" class="dashboard-sidebar" aria-label="Lecturer navigation">
+        <span class="dashboard-brand">ABI <strong>TECH</strong></span>
+        <a href="{% url 'dashboard' %}"{% if section == 'overview' %} aria-current="page"{% endif %}>Overview</a>
+        <a href="?section=courses"{% if section == 'courses' %} aria-current="page"{% endif %}>Teaching courses</a>
+        <a href="?section=assessments"{% if section == 'assessments' %} aria-current="page"{% endif %}>Assessments</a>
+        <a href="?section=insights"{% if section == 'insights' %} aria-current="page"{% endif %}>Diagnostic insights</a>
+        <a href="{% url 'outcomes' %}">Pilot outcomes</a>
+        <a href="{% url 'learning_assistant' %}">Learning assistant</a>
+        <a href="{% url 'profile' %}">Profile</a>
+        {% include "dashboard/sidebar_signout.html" %}
+    </nav>
+    <div class="dashboard-content">
+        {% if section == "overview" %}
+        <h1 class="overview-heading">Lecturer overview</h1>
+        <section class="overview-next overview-feature" aria-labelledby="teaching-heading">
+            <div><h2 id="teaching-heading">Manage teaching</h2>
+            <div class="course-actions">
+                <a class="button" href="{% url 'add_assessment' %}">Add assessment</a>
+                <a href="?section=assessments">Review submissions</a>
+            </div>
+        </div>
+        <div class="learning-art" aria-hidden="true">✓</div>
+        </section>
+        <ul class="overview-metrics" aria-label="Teaching summary">
+            <li><a href="?section=courses"><strong>{{ course_count }}</strong><span>Teaching courses</span></a></li>
+            <li><a href="?section=assessments"><strong>{{ assessment_count }}</strong><span>Assessments</span></a></li>
+            <li><a href="?section=assessments"><strong>{{ pending_count }}</strong><span>Ungraded submissions</span></a></li>
+        </ul>
+
+        {% elif section == "courses" %}
+        <h1>Teaching courses</h1>
+        <ul class="dashboard-roster">
+            {% for course in courses %}
+            <li>
+                <strong>{{ course.code }} · {{ course.title }}</strong>
+                <div class="course-actions">
+                    <a href="{% url 'learning_path' course.pk %}">Lessons</a>
+                    <a href="{% url 'edit_course' course.pk %}">Edit course</a>
+                    <a class="delete-link" href="{% url 'delete_course' course.pk %}">Delete course</a>
+                </div>
+            </li>
+            {% empty %}<li>No courses yet.</li>{% endfor %}
+        </ul>
+        {% elif section == "insights" %}
+        <h1>Diagnostic insights</h1>
+        {% for course, topics in insights %}
+        <section class="panel" aria-labelledby="insights-{{ course.pk }}">
+            <h2 id="insights-{{ course.pk }}">{{ course.title }}</h2>
+            <ul class="dashboard-roster">
+                {% for name, totals in topics %}
+                <li><strong>{{ name }}</strong><span>{{ totals.review }} of {{ totals.students }} students missed a question</span></li>
+                {% empty %}<li>No diagnostic results yet.</li>{% endfor %}
+            </ul>
+        </section>
+        {% empty %}<p>No courses yet.</p>{% endfor %}
+        {% else %}
+        <h1>Assessments</h1>
+        <a class="button" href="{% url 'add_assessment' %}">Add assessment</a>
+        <ul class="dashboard-roster">
+            {% for assessment in assessments %}
+            <li>
+                <span>{{ assessment.course.code }} · <strong>{{ assessment.title }}</strong>
+                {% if assessment.due_at %} · Due {{ assessment.due_at|date:"M j, Y H:i T" }}{% endif %}</span>
+                <a href="{% url 'review_assessment' assessment.pk %}">Review submissions</a>
+            </li>
+            {% empty %}<li>No assessments yet.</li>{% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

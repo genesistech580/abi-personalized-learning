@@ -1,0 +1,20 @@
+<ul class="dashboard-roster">
+    {% for course in items %}
+    <li>
+        <div>
+            <strong>{{ course.title }}</strong>
+            <div class="muted">{{ course.code }} · {{ course.lecturer.get_full_name|default:course.lecturer.username }}
+                {% if not joined %} · {{ course.lesson_count }} lesson{{ course.lesson_count|pluralize }}{% endif %}
+            </div>
+        </div>
+        {% if joined or course.enrolled %}
+        <a href="{% url 'learning_path' course.pk %}">Open lessons</a>
+        {% else %}
+        <form method="post" action="{% url 'enroll_course' course.pk %}">
+            {% csrf_token %}
+            <button type="submit">Enroll</button>
+        </form>
+        {% endif %}
+    </li>
+    {% empty %}<li>No courses yet.</li>{% endfor %}
+</ul>

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Learning assistant | ABI TECH{% endblock %}
+{% block content %}
+<h1>Learning assistant</h1>
+{% if course %}
+<form class="actions assistant-controls" method="get" action="{% url 'learning_assistant' %}#guidance">
+    <div><label for="assistant-course">Course</label>
+    <select name="course" id="assistant-course">
+        {% for item in courses %}<option value="{{ item.pk }}"{% if item == course %} selected{% endif %}>{{ item.title }}</option>{% endfor %}
+    </select></div>
+    <button type="submit">Show guidance</button>
+</form>
+{% if user.role != "student" or guidance_requested %}
+<section class="panel" id="guidance" aria-labelledby="guidance-title">
+    {% if user.role == "student" %}
+    <h2 id="guidance-title">Your next step · {{ course.title }}</h2>
+    {% if reviews %}
+    <p>Review these lessons before your next quiz attempt.</p>
+    <ul class="dashboard-roster">
+        {% for lesson, topic, result in reviews %}
+        <li><a href="{% url 'read_lesson' lesson.pk %}">Review {{ lesson.title }}</a><span>{{ topic }} · {{ result.correct }} of {{ result.total }} correct</span></li>
+        {% endfor %}
+    </ul>
+    <a class="button" href="{% url 'diagnostic' course.pk %}">Retake quiz</a>
+    {% elif has_quiz and not tried_quiz %}
+    <p>Take the diagnostic quiz to get recommendations based on your answers.</p>
+    <a class="button" href="{% url 'diagnostic' course.pk %}">Take diagnostic quiz</a>
+    {% elif next_lesson %}
+    <p>Your next unfinished lesson is <strong>{{ next_lesson.title }}</strong>.</p>
+    <a class="button" href="{% url 'read_lesson' next_lesson.pk %}">Continue {{ next_lesson.title }}</a>
+    {% elif has_quiz %}
+    <p>No review lessons are suggested for your latest result.</p>
+    <a class="button" href="{% url 'diagnostic' course.pk %}">Review quiz results</a>
+    {% else %}
+    <p>There are no unfinished lessons or diagnostic quizzes for this course.</p>
+    <a href="{% url 'learning_path' course.pk %}">Open course</a>
+    {% endif %}
+    {% else %}
+    <h2 id="guidance-title">Teaching priorities · {{ course.title }}</h2>
+    {% if review_topics %}
+    <ul class="dashboard-roster">
+        {% for topic, count in review_topics %}
+        <li><strong>Review {{ topic }}</strong><span>{{ count }} student{{ count|pluralize }} missed a question</span></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% if not has_quiz %}
+    <p>This course has no diagnostic questions yet.</p>
+    <a class="button" href="{% url 'add_diagnostic_question' course.pk %}">Add diagnostic questions</a>
+    {% else %}
+    {% if not diagnostic_participants %}<p>No students have taken this quiz yet.</p>
+    {% elif not review_topics %}<p>Students answered all topics correctly on their latest attempts.</p>{% endif %}
+    <a href="{% url 'dashboard' %}?section=insights">Open diagnostic insights</a>
+    {% endif %}
+    {% if pending %}
+    <p><a href="{% url 'dashboard' %}?section=assessments">Review {{ pending }} ungraded submission{{ pending|pluralize }}</a></p>
+    {% endif %}
+    {% endif %}
+</section>
+{% else %}<p>Select a course and choose <strong>Show guidance</strong>.</p>{% endif %}
+<section class="panel" id="course-chat" aria-labelledby="chat-title">
+    <h2 id="chat-title">AI chat</h2>
+    {% if chat_enabled %}
+    <p class="muted">Messages and course excerpts are sent to OpenAI. Keep personal information out of your message.</p>
+    <div class="assistant-messages">
+        {% for message in chat_history %}
+        <div class="chat-message chat-{{ message.role }}">
+            <strong>{% if message.role == "user" %}You{% else %}Assistant{% endif %}</strong>
+            {{ message.content|linebreaks }}
+        </div>
+        {% endfor %}
+    </div>
+    <form method="post" action="{% url 'learning_assistant' %}?course={{ course.pk }}#course-chat">
+        {% csrf_token %}
+        {{ chat_form.as_p }}
+        <button type="submit">Send message</button>
+    </form>
+    {% else %}
+    <p>AI chat is not configured yet.</p>
+    {% endif %}
+</section>
+{% elif user.role == "student" %}
+<p>Enroll in a course to get guidance.</p>
+<a href="{% url 'dashboard' %}?section=catalog">Browse courses</a>
+{% else %}
+<p>No courses assigned yet.</p>
+{% endif %}
+<p><a href="{% url 'dashboard' %}">Back to dashboard</a></p>
+{% endblock %}
+
+
+
+

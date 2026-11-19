@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Pilot outcomes | ABI TECH{% endblock %}
+{% block content %}
+<h1>Pilot outcomes</h1>
+<p><a href="{% url 'dashboard' %}">Back to dashboard</a></p>
+<p class="muted">Score changes compare first and latest attempts on the same quiz version.</p>
+{% for report in reports %}
+<section class="panel" aria-labelledby="outcomes-{{ report.course.pk }}">
+    <h2 id="outcomes-{{ report.course.pk }}">{{ report.course.title }}</h2>
+    {% if report.overall %}
+    <p>{{ report.overall.count }} comparable result{{ report.overall.count|pluralize }}</p>
+    <p><strong>{{ report.overall.first|floatformat:1 }}% → {{ report.overall.last|floatformat:1 }}%</strong>
+        · {{ report.overall.change|floatformat:1 }} percentage point change</p>
+    <p>{{ report.review_count }} of {{ report.overall.count }} opened a suggested lesson before the latest attempt.</p>
+    {% else %}
+    <p>No comparable first and follow-up scores yet.</p>
+    {% endif %}
+    {% if report.topics %}
+    <h3>By topic</h3>
+    <ul class="dashboard-roster">
+        {% for topic, summary, review in report.topics %}
+        <li><strong>{{ topic }}</strong><span>
+            {% if summary %}{{ summary.first|floatformat:1 }}% → {{ summary.last|floatformat:1 }}% · {% endif %}
+            {% if user.role == "student" %}{% if review %}Review{% else %}No missed questions{% endif %}
+            {% else %}{{ review }} need review{% endif %}
+        </span></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% if user.role == "student" %}<p><a href="{% url 'diagnostic' report.course.pk %}">Open quiz</a></p>{% endif %}
+</section>
+{% empty %}<p>No diagnostic results yet.</p>{% endfor %}
+{% endblock %}

@@ -1,0 +1,22 @@
+<section aria-labelledby="course-catalog">
+    <h2 id="course-catalog">All courses</h2>
+    <div class="courses">
+        {% for course in course_catalog %}
+        <article class="panel">
+            <h3>{{ course.title }}</h3>
+            <p class="muted">{{ course.code }} · {{ course.lesson_count }} lesson{{ course.lesson_count|pluralize }}</p>
+            <p>Lecturer: {{ course.lecturer.get_full_name|default:course.lecturer.username }}</p>
+            {% if course.enrolled %}
+            <a class="button" href="{% url 'learning_path' course.pk %}">Open lessons</a>
+            {% else %}
+            <form method="post" action="{% url 'enroll_course' course.pk %}">
+                {% csrf_token %}
+                <button type="submit">Enroll</button>
+            </form>
+            {% endif %}
+        </article>
+        {% empty %}
+        <p class="panel">No courses available yet.</p>
+        {% endfor %}
+    </div>
+</section>

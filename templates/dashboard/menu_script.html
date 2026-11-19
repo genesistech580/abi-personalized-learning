@@ -1,0 +1,22 @@
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const button = document.querySelector('.dashboard-menu-toggle');
+        const sidebar = document.getElementById('dashboard-navigation');
+        if (!button || !sidebar) return;
+
+        const setOpen = (open) => {
+            button.setAttribute('aria-expanded', String(open));
+            sidebar.classList.toggle('menu-open', open);
+        };
+        button.addEventListener('click', () => {
+            setOpen(button.getAttribute('aria-expanded') === 'false');
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') {
+                setOpen(false);
+                button.focus();
+            }
+        });
+        document.documentElement.classList.add('dashboard-menu-ready');
+    });
+</script>

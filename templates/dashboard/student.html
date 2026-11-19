@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Student dashboard | ABI TECH{% endblock %}
+{% block main_class %} dashboard-page{% endblock %}
+{% block header_logout %}{% endblock %}
+{% block content %}
+{% include "dashboard/menu_script.html" %}
+<div class="dashboard-layout">
+    <button class="dashboard-menu-toggle" type="button" aria-controls="dashboard-navigation" aria-expanded="false">Menu</button>
+    <nav id="dashboard-navigation" class="dashboard-sidebar" aria-label="Student navigation">
+        <span class="dashboard-brand">ABI <strong>TECH</strong></span>
+        <a href="{% url 'dashboard' %}"{% if section == 'overview' %} aria-current="page"{% endif %}>Overview</a>
+        <a href="?section=courses"{% if section == 'courses' %} aria-current="page"{% endif %}>My courses</a>
+        <a href="?section=catalog"{% if section == 'catalog' %} aria-current="page"{% endif %}>All courses</a>
+        <a href="?section=assessments"{% if section == 'assessments' %} aria-current="page"{% endif %}>Assessments</a>
+        <a href="?section=recommended"{% if section == 'recommended' %} aria-current="page"{% endif %}>Recommended</a>
+        <a href="?section=performance"{% if section == 'performance' %} aria-current="page"{% endif %}>Performance</a>
+        <a href="{% url 'outcomes' %}">Pilot outcomes</a>
+        <a href="{% url 'pilot_feedback' %}">Pilot feedback</a>
+        <a href="{% url 'learning_assistant' %}">Learning assistant</a>
+        <a href="{% url 'profile' %}">Profile</a>
+        {% include "dashboard/sidebar_signout.html" %}
+    </nav>
+    <div class="dashboard-content">
+        {% if section == "overview" %}
+        <h1 class="overview-heading">Welcome back, {{ user.first_name|default:user.username }}</h1>
+        <section class="overview-next overview-feature" aria-labelledby="next-heading">
+            <div>
+                {% if next_lesson %}
+                <h2 id="next-heading">Continue learning</h2>
+                <p class="featured-course">{{ featured_course.title }}</p>
+                <label for="overview-progress">{{ completed_count }} of {{ featured_course.learning_lessons|length }} lessons complete</label>
+                <progress id="overview-progress" value="{{ completed_count }}" max="{{ featured_course.learning_lessons|length }}"></progress>
+                <a class="button" href="{% url 'read_lesson' next_lesson.pk %}">Continue lesson →</a>
+                {% else %}
+                <h2 id="next-heading">Explore courses</h2>
+                <a class="button" href="?section=catalog">Browse courses →</a>
+                {% endif %}
+            </div>
+            <div class="learning-art" aria-hidden="true">&lt;/&gt;</div>
+        </section>
+        <div class="learning-overview-grid">
+            <section class="panel learning-path" aria-labelledby="overview-path">
+                <h2 id="overview-path">Learning path</h2>
+                {% if next_lesson %}
+                <ol>
+                    {% for lesson in featured_course.learning_lessons %}
+                    <li{% if lesson.pk == next_lesson.pk %} class="current-lesson"{% endif %}>
+                        <a href="{% url 'read_lesson' lesson.pk %}">{{ lesson.title }}</a>
+                        {% if lesson.completed %}<span>✓ Complete</span>{% elif lesson.pk == next_lesson.pk %}<span>Up next</span>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ol>
+                {% elif courses %}
+                <a href="?section=courses">Open my courses</a>
+                {% else %}
+                <p>No enrolled courses yet.</p>
+                {% endif %}
+            </section>
+            <section class="panel" aria-labelledby="course-progress">
+                <h2 id="course-progress">Course progress</h2>
+                <ul class="progress-list">
+                    {% for course, completed in course_progress %}
+                    <li>
+                        <a href="{% url 'learning_path' course.pk %}">{{ course.title }}</a>
+                        {% if course.learning_lessons %}
+                        <label for="progress-{{ course.pk }}">{{ completed }} of {{ course.learning_lessons|length }} lessons complete</label>
+                        <progress id="progress-{{ course.pk }}" value="{{ completed }}" max="{{ course.learning_lessons|length }}"></progress>
+                        {% else %}<p>No lessons yet.</p>{% endif %}
+                    </li>
+                    {% empty %}<li>No enrolled courses yet.</li>{% endfor %}
+                </ul>
+            </section>
+        </div>
+        <ul class="overview-metrics overview-summary" aria-label="Learning summary">
+            <li><a href="?section=courses"><strong>{{ courses|length }}</strong><span>My courses</span></a></li>
+            <li><a href="?section=assessments"><strong>{{ student_assessments|length }}</strong><span>Assessments</span></a></li>
+            <li><a href="?section=recommended"><strong>{% with review_count=diagnostic_reviews|length %}{{ recommendations|length|add:review_count }}{% endwith %}</strong><span>Recommended</span></a></li>
+        </ul>
+        {% elif section == "courses" or section == "catalog" %}
+        <h1>{% if section == "courses" %}My courses{% else %}All courses{% endif %}</h1>
+        {% if section == "courses" %}
+            {% include "dashboard/student_courses.html" with items=courses joined=True %}
+        {% else %}
+            {% include "dashboard/student_courses.html" with items=course_catalog %}
+        {% endif %}
+        {% elif section == "assessments" %}
+        <h1>Assessments</h1>
+        <ul class="dashboard-roster">
+            {% for assessment in student_assessments %}
+            <li>
+                <a href="{% url 'submit_assessment' assessment.pk %}">{{ assessment.title }}</a>
+                <span>{{ assessment.course.code }} · {% if assessment.score is not None %}Graded{% elif assessment.submission_id %}Submitted{% else %}To do{% endif %}
+                {% if assessment.due_at %} · Due {{ assessment.due_at|date:"M j, Y H:i T" }}{% endif %}</span>
+            </li>
+            {% empty %}<li>No assessments yet.</li>{% endfor %}
+        </ul>
+        {% elif section == "performance" %}
+        {% include "dashboard/performance.html" %}
+        {% elif section == "recommended" %}
+        <h1>Recommended next</h1>
+        <ul class="dashboard-roster">
+            {% for lesson, topic, result in diagnostic_reviews %}
+            <li><a href="{% url 'read_lesson' lesson.pk %}">Review {{ lesson.title }}</a>
+                <span>{{ lesson.course.code }} · {{ topic }} · {{ result.correct }} of {{ result.total }} correct</span></li>
+            {% endfor %}
+            {% for assessment, action in recommendations %}
+            <li><a href="{% url 'submit_assessment' assessment.pk %}">{{ assessment.title }}</a><span>{{ assessment.course.code }} · {{ action }}</span></li>
+            {% empty %}{% if not diagnostic_reviews %}<li>{% if diagnostic_courses %}Take a diagnostic quiz to get review suggestions.{% else %}No diagnostic quizzes available yet.{% endif %}</li>{% endif %}{% endfor %}
+        </ul>
+        {% if diagnostic_courses %}
+        <h2>Diagnostic quizzes</h2>
+        <ul class="dashboard-roster">
+            {% for course in diagnostic_courses %}
+            <li><a href="{% url 'diagnostic' course.pk %}">{{ course.title }}</a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

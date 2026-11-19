@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Pilot evaluation | ABI TECH{% endblock %}
+{% block content %}
+<h1>Java pilot evaluation</h1>
+<p><a href="{% url 'dashboard' %}">Back to dashboard</a></p>
+<section class="panel">
+    <h2>Learner model</h2>
+    <p>Predicts follow-up topic scores from a student’s first score and earlier first scores from other students on the same quiz version. The baseline predicts the student’s first score.</p>
+    {% if prediction_count %}
+    <p>{{ prediction_count }} topic predictions. Average absolute error in percentage points (lower is better).</p>
+    <ul class="dashboard-roster">
+        <li>Score baseline <strong>{{ baseline_error|floatformat:1 }}</strong></li>
+        <li>Peer-informed model <strong>{{ model_error|floatformat:1 }}</strong></li>
+    </ul>
+    {% else %}
+    <p>No eligible comparisons yet. The model needs a retake and an earlier first attempt from another student on the same quiz version.</p>
+    {% endif %}
+</section>
+<section class="panel">
+    <h2>Quiz performance</h2>
+    {% if pair_count %}
+    <p>{{ pair_count }} first-and-follow-up pairs on matching quiz versions. Mean change: <strong>{{ score_change|floatformat:1 }} percentage points</strong>.</p>
+    <p>These results describe quiz score changes. Repeating a quiz can affect the result.</p>
+    {% else %}
+    <p>No comparable retakes yet.</p>
+    {% endif %}
+    <a href="{% url 'outcomes' %}">Pilot outcomes</a>
+</section>
+<section class="panel">
+    <h2>Usability</h2>
+    <p>{{ feedback.count }} survey response{{ feedback.count|pluralize }}</p>
+    {% if feedback.count %}
+    <ul class="dashboard-roster">
+        <li>Ease of use <strong>{{ feedback.ease|floatformat:1 }}/5</strong></li>
+        <li>Clarity of recommendations <strong>{{ feedback.clarity|floatformat:1 }}/5</strong></li>
+        <li>Helpfulness for learning <strong>{{ feedback.usefulness|floatformat:1 }}/5</strong></li>
+    </ul>
+    {% endif %}
+    <a href="{% url 'pilot_feedback' %}">Pilot feedback</a>
+</section>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Pilot feedback | ABI TECH{% endblock %}
+{% block content %}
+<section class="panel form-panel">
+    <h1>Pilot feedback</h1>
+    {% if user.role == "administrator" %}
+    <p>{{ summary.count }} response{{ summary.count|pluralize }}</p>
+    {% if summary.count %}
+    <ul class="dashboard-roster">
+        <li>Ease of use <strong>{{ summary.ease|floatformat:1 }}/5</strong></li>
+        <li>Clarity of recommendations <strong>{{ summary.clarity|floatformat:1 }}/5</strong></li>
+        <li>Helpfulness for learning <strong>{{ summary.usefulness|floatformat:1 }}/5</strong></li>
+    </ul>
+    {% endif %}
+    {% elif eligible %}
+    <p>Optional. Rate each item from 1 (low) to 5 (high).</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save feedback</button>
+    </form>
+    {% else %}
+    <p>Take the Java pilot quiz to give feedback.</p>
+    <a href="{% url 'dashboard' %}?section=catalog">Browse courses</a>
+    {% endif %}
+    <p><a href="{% url 'dashboard' %}">Back to dashboard</a></p>
+</section>
+{% endblock %}

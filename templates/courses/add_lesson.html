@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="panel form-panel">
+    <h1>Add lesson</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save lesson</button>
+        <a href="{% url 'learning_path' course.pk %}">Cancel</a>
+    </form>
+</article>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Profile | ABI's AI-Powered Personalized Learning{% endblock %}
+{% block content %}
+<article class="panel form-panel">
+    <h1>Profile</h1>
+    <p>{{ user.username }} · {{ user.get_role_display }}</p>
+    <img id="profile-preview" class="profile-photo" alt="Your profile photo"
+        {% if user.photo %}src="{% url 'profile_photo' %}"{% else %}hidden{% endif %}>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            {% if field.name != "remove_photo" or user.photo %}
+                <div class="profile-field">{{ field.as_field_group }}</div>
+            {% endif %}
+        {% endfor %}
+        <button type="submit">Save profile</button>
+        <a href="{% url 'dashboard' %}">Back</a>
+    </form>
+</article>
+<script>
+    const photoInput = document.getElementById('id_photo');
+    const preview = document.getElementById('profile-preview');
+    const savedPhoto = preview.getAttribute('src');
+    let previewUrl;
+
+    photoInput.addEventListener('change', () => {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        const photo = photoInput.files[0];
+        previewUrl = photo ? URL.createObjectURL(photo) : null;
+        const source = previewUrl || savedPhoto;
+        if (source) {
+            preview.src = source;
+            preview.hidden = false;
+        } else {
+            preview.removeAttribute('src');
+            preview.hidden = true;
+        }
+    });
+    preview.addEventListener('error', () => {
+        if (savedPhoto && preview.getAttribute('src') !== savedPhoto) {
+            preview.src = savedPhoto;
+        } else {
+            preview.hidden = true;
+        }
+    });
+</script>
+{% endblock %}

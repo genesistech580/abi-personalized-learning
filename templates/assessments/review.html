@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ assessment.title }} | ABI's AI-Powered Personalized Learning{% endblock %}
+{% block content %}
+<section class="panel">
+    <h1>{{ assessment.title }}</h1>
+    <h2>Submissions</h2>
+    <ul>
+        {% for submission in submissions %}
+        <li><a href="{% url 'grade_submission' submission.pk %}">{{ submission.student.username }}</a>
+            · {% if submission.score is None %}Ungraded{% else %}{{ submission.score }}/100{% endif %}
+        </li>
+        {% empty %}<li>No submissions yet.</li>{% endfor %}
+    </ul>
+    <a href="{% url 'dashboard' %}">Back</a>
+</section>
+{% endblock %}

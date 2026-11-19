@@ -1,0 +1,41 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}ABI's AI-Powered Personalized Learning{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'dashboard/main.css' %}?v=evaluation-review">
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav class="container topbar" aria-label="Main navigation">
+            <a class="brand" href="{% url 'dashboard' %}">ABI's AI-Powered Personalized Learning</a>
+            {% if user.is_authenticated %}
+            <a class="profile-link" href="{% url 'profile' %}" aria-label="Profile">
+                {% if user.photo %}
+                <img class="topbar-avatar" src="{% url 'profile_photo' %}" alt="" width="44" height="44">
+                {% else %}
+                Profile
+                {% endif %}
+            </a>
+            {% block header_logout %}
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit">Sign out</button>
+            </form>
+            {% endblock %}
+            {% endif %}
+        </nav>
+    </header>
+    <main class="container{% block main_class %}{% endblock %}">
+        {% for message in messages %}
+        <p class="notice" role="status">{{ message }}</p>
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">&copy; Developed By Abigail Atesika</footer>
+</body>
+</html>
+

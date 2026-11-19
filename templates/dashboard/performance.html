@@ -1,0 +1,27 @@
+<h1>Performance report</h1>
+{% for report in reports %}
+<section class="panel" aria-labelledby="report-{{ report.attempt.course_id }}">
+    <h2 id="report-{{ report.attempt.course_id }}">{{ report.attempt.course.title }}</h2>
+    <p>Latest quiz: <strong>{{ report.attempt.correct_count }}/{{ report.attempt.question_count }}</strong></p>
+    <ul class="dashboard-roster">
+        {% for topic in report.topics %}
+        <li>
+            <div>
+                <strong>{{ topic.name }}</strong>
+                <div>{{ topic.result.correct }} of {{ topic.result.total }} correct
+                    · {% if topic.result.correct == topic.result.total %}Strength{% else %}Review{% endif %}
+                </div>
+                {% if topic.previous %}<div class="muted">Previous: {{ topic.previous.correct }} of {{ topic.previous.total }} correct</div>{% endif %}
+            </div>
+            {% for lesson in topic.lessons %}
+            <a href="{% url 'read_lesson' lesson.pk %}">Review {{ lesson.title }}</a>
+            {% endfor %}
+        </li>
+        {% endfor %}
+    </ul>
+    <a class="button" href="{% url 'diagnostic' report.attempt.course_id %}">Retake quiz</a>
+</section>
+{% empty %}
+<p>Take a diagnostic quiz to see your results here.</p>
+<a href="{% url 'dashboard' %}?section=recommended">Find a quiz</a>
+{% endfor %}

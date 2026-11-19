@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+{% block styles %}<link rel="stylesheet" href="{% static 'dashboard/auth.css' %}?v=auth-layout">{% endblock %}
+{% block main_class %} auth-page{% endblock %}
+{% block content %}
+<div class="auth-layout">
+    <div class="auth-intro">
+        <span class="auth-wordmark"><span>WELCOME TO</span> <strong>ABI TECH</strong></span>
+        <div class="auth-art" aria-hidden="true"></div>
+    </div>
+    <section class="auth-card" aria-labelledby="auth-title">
+        <h1 id="auth-title">{% block heading %}{% endblock %}</h1>
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="auth-errors" role="alert">{{ form.non_field_errors }}</div>
+            {% endif %}
+            {% for field in form %}
+            {% if field.name == "remember_me" %}
+            <div class="auth-options">
+                <label class="remember-option">{{ field }} <span>{{ field.label }}</span></label>
+                <a href="{% url 'password_reset' %}">Forgot password?</a>
+            </div>
+            {% else %}
+            <div class="auth-field">{{ field.as_field_group }}</div>
+            {% endif %}
+            {% endfor %}
+            {% block hidden_fields %}{% endblock %}
+            <button type="submit">{% block submit %}{% endblock %}</button>
+        </form>
+        <p class="auth-switch">{% block alternate %}{% endblock %}</p>
+    </section>
+</div>
+{% endblock %}
+

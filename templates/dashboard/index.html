@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Administrator dashboard | ABI TECH{% endblock %}
+{% block main_class %} dashboard-page{% endblock %}
+{% block header_logout %}{% endblock %}
+{% block content %}
+{% include "dashboard/menu_script.html" %}
+<div class="dashboard-layout">
+    <button class="dashboard-menu-toggle" type="button" aria-controls="dashboard-navigation" aria-expanded="false">Menu</button>
+    <nav id="dashboard-navigation" class="dashboard-sidebar" aria-label="Administrator navigation">
+        <span class="dashboard-brand">ABI <strong>TECH</strong></span>
+        <a href="{% url 'dashboard' %}"{% if section == 'overview' %} aria-current="page"{% endif %}>Overview</a>
+        <a href="?section=courses"{% if section == 'courses' %} aria-current="page"{% endif %}>Courses</a>
+        <a href="?section=people#students"{% if section == 'people' %} aria-current="page"{% endif %}>Students and lecturers</a>
+        <a href="?section=enrollments"{% if section == 'enrollments' %} aria-current="page"{% endif %}>Enrollments</a>
+        <a href="?section=pilot"{% if section == 'pilot' %} aria-current="page"{% endif %}>Pilot activity</a>
+        <a href="{% url 'outcomes' %}">Pilot outcomes</a>
+        <a href="{% url 'pilot_feedback' %}">Pilot feedback</a>
+        <a href="{% url 'pilot_evaluation' %}">Pilot evaluation</a>
+        <a href="{% url 'profile' %}">Profile</a>
+        {% include "dashboard/sidebar_signout.html" %}
+    </nav>
+    <div class="dashboard-content">
+        {% if section == "overview" %}
+        <h1 class="overview-heading">Administrator overview</h1>
+        {% include "dashboard/admin_stats.html" %}
+        <section class="overview-next" aria-labelledby="quick-actions">
+            <h2 id="quick-actions">Quick actions</h2>
+            <div class="actions">
+                {% for route, label in actions %}<a class="button" href="{% url route %}">{{ label }}</a>{% endfor %}
+            </div>
+        </section>
+        {% elif section == "courses" %}
+        <h1>Courses</h1>
+        <div class="actions">
+            <a class="button" href="{% url 'add_course' %}">Add course</a>
+            <a class="button button-secondary" href="{% url 'add_assessment' %}">Add assessment</a>
+        </div>
+        <ul class="dashboard-roster">
+            {% for course in courses %}
+            <li>
+                <div>
+                    <strong>{{ course.code }} · {{ course.title }}</strong>
+                    <div class="muted">{{ course.lecturer.get_full_name|default:course.lecturer.username }}</div>
+                    {% for assessment in course.assessments.all %}
+                    <details><summary>{{ assessment.title }}{% if assessment.due_at %} · Due {{ assessment.due_at|date:"M j, Y H:i T" }}{% endif %}</summary>
+                        {% if assessment.instructions %}{{ assessment.instructions|linebreaks }}{% else %}<p>No instructions.</p>{% endif %}
+                    </details>
+                    {% empty %}<div class="muted">No assessments yet.</div>{% endfor %}
+                </div>
+                <div class="course-actions">
+                    <a class="button button-secondary" href="{% url 'edit_course' course.pk %}">Edit course</a>
+                    <a class="button button-secondary" href="{% url 'delete_course' course.pk %}">Delete course</a>
+                </div>
+            </li>
+            {% empty %}<li>No courses yet.</li>{% endfor %}
+        </ul>
+        {% elif section == "people" %}
+        <h1>Students and lecturers</h1>
+        <p><a class="button" href="{% url 'add_lecturer' %}">Add lecturer</a></p>
+        {% include "dashboard/admin_rosters.html" %}
+        {% elif section == "pilot" %}
+        <h1>Pilot activity</h1>
+        {% for course, activity in pilot_activity %}
+        <section class="panel" aria-labelledby="pilot-{{ course.pk }}">
+            <h2 id="pilot-{{ course.pk }}">{{ course.title }}</h2>
+            <ul class="dashboard-roster">
+                <li>Students who took the quiz <strong>{{ activity.started }}</strong></li>
+                <li>Students who retook it <strong>{{ activity.retook }}</strong></li>
+                <li>Total quiz attempts <strong>{{ activity.attempts }}</strong></li>
+            </ul>
+        </section>
+        {% empty %}<p>No courses have diagnostic quizzes yet.</p>{% endfor %}
+        {% else %}
+        <h1>Enrollments</h1>
+        <a class="button" href="{% url 'add_enrollment' %}">Enroll student</a>
+        <ul class="dashboard-roster">
+            {% for enrollment in enrollments %}
+            <li><strong>{{ enrollment.student.username }}</strong><span>{{ enrollment.course.code }} · {{ enrollment.course.title }}</span></li>
+            {% empty %}<li>No enrollments yet.</li>{% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.title }} | ABI's AI-Powered Personalized Learning{% endblock %}
+{% block content %}
+<article class="panel">
+    <a href="{% url 'learning_path' lesson.course_id %}">Lessons</a>
+    <h1>{{ lesson.title }}</h1>
+    {{ lesson.content|linebreaks }}
+    {% if user.role == "student" %}
+        {% if completed %}
+        <p>Complete</p>
+        {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit">Mark complete</button>
+        </form>
+        {% endif %}
+    {% endif %}
+</article>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="panel form-panel">
+    <h1>Delete course</h1>
+    <p><strong>{{ course }}</strong></p>
+    <p>This permanently removes its lessons, progress, enrollments, assessments, and submissions.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button class="danger-button" type="submit">Delete course</button>
+        <a href="{% url 'dashboard' %}">Cancel</a>
+    </form>
+</article>
+{% endblock %}

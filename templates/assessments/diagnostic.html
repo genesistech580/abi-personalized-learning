@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel form-panel">
+    <h1>Diagnostic quiz</h1>
+    <p>{{ course.title }}</p>
+    {% if latest %}
+    <h2>Latest result · {{ latest.correct_count }}/{{ latest.question_count }}</h2>
+    <ul class="dashboard-roster">
+        {% for topic, result in latest.results.items %}
+        <li>{{ topic }} <strong>{{ result.correct }}/{{ result.total }}</strong></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% if review_lessons %}
+    <h2>Recommended review</h2>
+    <ul>
+        {% for lesson, topic, result in review_lessons %}
+        <li><a href="{% url 'read_lesson' lesson.pk %}">{{ lesson.title }}</a></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% if attempts|length > 1 %}
+    <details>
+        <summary>Attempt history</summary>
+        <ul>
+            {% for attempt in attempts %}
+            <li>{{ attempt.submitted_at|date:"M j, Y H:i" }} · {{ attempt.correct_count }}/{{ attempt.question_count }}</li>
+            {% endfor %}
+        </ul>
+    </details>
+    {% endif %}
+    {% if has_questions %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">{% if latest %}Submit another attempt{% else %}Submit quiz{% endif %}</button>
+    </form>
+    {% else %}<p>No questions yet.</p>{% endif %}
+    <a href="{% url 'learning_path' course.pk %}">Back</a>
+</section>
+{% endblock %}
+
+

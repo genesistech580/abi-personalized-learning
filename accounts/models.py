@@ -1,0 +1,19 @@
+from django.contrib.auth.models import AbstractUser, UserManager
+from django.db import models
+
+
+class LearningUserManager(UserManager):
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields["role"] = self.model.Role.ADMINISTRATOR
+        return super().create_superuser(username, email, password, **extra_fields)
+
+
+class User(AbstractUser):
+    class Role(models.TextChoices):
+        STUDENT = "student", "Student"
+        LECTURER = "lecturer", "Lecturer"
+        ADMINISTRATOR = "administrator", "Administrator"
+
+    role = models.CharField(max_length=13, choices=Role.choices, default=Role.STUDENT)
+    photo = models.FileField(upload_to="profiles/", blank=True)
+    objects = LearningUserManager()

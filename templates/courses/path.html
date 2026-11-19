@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} | ABI's AI-Powered Personalized Learning{% endblock %}
+{% block content %}
+<section class="panel">
+    <a href="{% url 'dashboard' %}">Dashboard</a>
+    <h1>{{ course.title }}</h1>
+    {% if user.role == "student" and course.diagnostic_questions.exists %}
+    <p><a href="{% url 'diagnostic' course.pk %}">Diagnostic quiz</a></p>
+    {% endif %}
+    {% if user.role == "lecturer" %}
+    <p><a href="{% url 'add_diagnostic_question' course.pk %}">Diagnostic questions</a></p>
+    <a class="button" href="{% url 'add_lesson' course.pk %}">Add lesson</a>
+    {% elif lessons %}
+    <p><label for="lesson-progress">{{ completed_count }} of {{ lessons|length }} complete</label>
+        <progress id="lesson-progress" value="{{ completed_count }}" max="{{ lessons|length }}"></progress>
+    </p>
+    {% if next_lesson %}
+    <a class="button" href="{% url 'read_lesson' next_lesson.pk %}">Continue learning</a>
+    {% endif %}
+    {% endif %}
+    <h2>Lessons</h2>
+    <ol>
+        {% for lesson in lessons %}
+        <li><a href="{% url 'read_lesson' lesson.pk %}">{{ lesson.title }}</a>{% if lesson.completed %} · Complete{% endif %}</li>
+        {% empty %}<li>No lessons yet.</li>{% endfor %}
+    </ol>
+</section>
+{% endblock %}
+

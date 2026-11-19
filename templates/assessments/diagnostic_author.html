@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel form-panel">
+    <h1>Diagnostic questions</h1>
+    <p>{{ course.title }}</p>
+    <ul>
+        {% for question in course.diagnostic_questions.all %}
+        <li>{{ question.topic }} · {{ question.prompt }}</li>
+        {% empty %}<li>No questions yet.</li>{% endfor %}
+    </ul>
+    <h2>Add question</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save question</button>
+        <a href="{% url 'learning_path' course.pk %}">Back</a>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Grade submission | ABI's AI-Powered Personalized Learning{% endblock %}
+{% block content %}
+<article class="panel form-panel">
+    <h1>{{ submission.assessment.title }}</h1>
+    <h2>{{ submission.student.username }}</h2>
+    {{ submission.answer|linebreaks }}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save grade</button>
+        <a href="{% url 'review_assessment' submission.assessment_id %}">Back</a>
+    </form>
+</article>
+{% endblock %}
