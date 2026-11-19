@@ -15,5 +15,7 @@ class User(AbstractUser):
         ADMINISTRATOR = "administrator", "Administrator"
 
     role = models.CharField(max_length=13, choices=Role.choices, default=Role.STUDENT)
+    department = models.CharField(max_length=120, blank=True)
     photo = models.FileField(upload_to="profiles/", blank=True)
     objects = LearningUserManager()
+

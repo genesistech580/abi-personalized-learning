@@ -205,7 +205,7 @@ def create_record(request, form_class, title, success_message):
     if user.role != User.Role.ADMINISTRATOR and not lecturer_assessment:
         raise PermissionDenied
 
-    form = form_class(request.POST if request.method == "POST" else None)
+    form = form_class(request.POST if request.method == "POST" else None, request.FILES)
     if lecturer_assessment:
         form.fields["course"].queryset = user.teaching_courses.order_by("code")
 
@@ -215,6 +215,7 @@ def create_record(request, form_class, title, success_message):
         return redirect("dashboard")
 
     return render(request, "dashboard/create.html", {"form": form, "title": title})
+
 
 
 
