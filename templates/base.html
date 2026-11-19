@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}ABI's AI-Powered Personalized Learning{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'dashboard/main.css' %}?v=evaluation-review">
+    <link rel="stylesheet" href="{% static 'dashboard/main.css' %}?v=password-toggle">
     {% block styles %}{% endblock %}
 </head>
 <body>
@@ -36,6 +36,8 @@
         {% block content %}{% endblock %}
     </main>
     <footer class="site-footer">&copy; Developed By Abigail Atesika</footer>
+    <script src="{% static 'dashboard/password.js' %}" defer></script>
 </body>
 </html>
+
 
