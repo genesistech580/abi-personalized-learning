@@ -5,7 +5,7 @@
     <a href="{% url 'dashboard' %}">Dashboard</a>
     <h1>{{ course.title }}</h1>
     {% if user.role == "student" and course.diagnostic_questions.exists %}
-    <p><a href="{% url 'diagnostic' course.pk %}">Diagnostic quiz</a></p>
+    <p><a href="{% url 'diagnostic' course.pk %}">Diagnostic quiz</a> · <a href="{% url 'diagnostic' course.pk %}?stage=followup">Follow-up quiz</a></p>
     {% endif %}
     {% if user.role == "lecturer" %}
     <p><a href="{% url 'add_diagnostic_question' course.pk %}">Diagnostic questions</a></p>
@@ -26,4 +26,5 @@
     </ol>
 </section>
 {% endblock %}
+
 

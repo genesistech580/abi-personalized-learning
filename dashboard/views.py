@@ -65,6 +65,9 @@ def index(request):
             context["diagnostic_courses"] = Course.objects.filter(
                 enrollments__student=user, diagnostic_questions__isnull=False
             ).distinct().order_by("code")
+        context["quiz_courses"] = Course.objects.filter(
+            enrollments__student=user, diagnostic_questions__isnull=False
+        ).distinct().order_by("code")
         context["course_heading"] = "My courses"
         context["recommendations"] = for_student(user)
         enrollments = Enrollment.objects.filter(course=OuterRef("pk"), student=user)

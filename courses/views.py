@@ -2,7 +2,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, F, OuterRef
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
@@ -10,7 +10,8 @@ from accounts.models import User
 from dashboard.forms import CourseForm
 from recommendations.services import diagnostic_reviews
 
-from .models import Course, Enrollment, Lesson, LessonCompletion
+from .models import Course, Enrollment, Lesson, LessonCompletion, LessonVisit
+from django.utils import timezone
 
 
 class LessonForm(forms.ModelForm):
@@ -79,6 +80,9 @@ def read_lesson(request, pk):
         return redirect("learning_path", pk=lesson.course_id)
 
     if user.role == User.Role.STUDENT:
+        visit, created = LessonVisit.objects.get_or_create(lesson=lesson, student=user)
+        if not created:
+            LessonVisit.objects.filter(pk=visit.pk).update(visits=F("visits") + 1, last_opened_at=timezone.now())
         latest = lesson.course.diagnostic_attempts.filter(student=user).order_by("-pk").first()
         if latest and not latest.review_opened and any(
             suggested.pk == lesson.pk
@@ -135,5 +139,7 @@ def enroll_course(request, pk):
     _, created = Enrollment.objects.get_or_create(course=course, student=request.user)
     if created:
         messages.success(request, "You’re enrolled.")
+    if course.diagnostic_questions.filter(stage="diagnostic").exists() and not course.diagnostic_attempts.filter(student=request.user).exists():
+        return redirect("diagnostic", pk=course.pk)
     return redirect("learning_path", pk=course.pk)
 

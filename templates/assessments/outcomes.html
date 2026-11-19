@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Pilot outcomes</h1>
 <p><a href="{% url 'dashboard' %}">Back to dashboard</a></p>
-<p class="muted">Score changes compare first and latest attempts on the same quiz version.</p>
+<p class="muted">Score changes compare first and latest attempts on the same quiz or matching topic coverage.</p>
 {% for report in reports %}
 <section class="panel" aria-labelledby="outcomes-{{ report.course.pk }}">
     <h2 id="outcomes-{{ report.course.pk }}">{{ report.course.title }}</h2>

@@ -7,6 +7,9 @@ from django.shortcuts import render
 
 from accounts.models import User
 
+from recommendations.learner_model import evaluate
+from courses.models import Course
+
 from .models import DiagnosticAttempt, PilotFeedback
 
 
@@ -57,14 +60,17 @@ def pilot_evaluation(request):
             observed = result["correct"] / result["total"]
             errors.append((abs(baseline - observed), abs(predicted - observed)))
 
+    pilot = Course.objects.filter(code="PILOT-JAVA").first()
+    model_status = evaluate(pilot.pk) if pilot else None
     feedback = PilotFeedback.objects.aggregate(
         count=Count("pk"), ease=Avg("ease"), clarity=Avg("clarity"), usefulness=Avg("usefulness")
     )
     return render(request, "assessments/evaluation.html", {
-        "feedback": feedback,
+        "feedback": feedback, "model_status": model_status,
         "pair_count": len(score_changes),
         "score_change": sum(score_changes) / len(score_changes) if score_changes else None,
         "prediction_count": len(errors),
         "baseline_error": 100 * sum(baseline for baseline, _ in errors) / len(errors) if errors else None,
         "model_error": 100 * sum(model for _, model in errors) / len(errors) if errors else None,
     })
+

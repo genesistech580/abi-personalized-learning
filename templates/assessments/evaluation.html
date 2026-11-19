@@ -5,6 +5,8 @@
 <p><a href="{% url 'dashboard' %}">Back to dashboard</a></p>
 <section class="panel">
     <h2>Learner model</h2>
+    <p>{% if model_status.enabled %}Peer-based review ranking active.{% else %}Score-based review ranking active.{% endif %}</p>
+    <p class="muted">Peer ranking requires at least 10 evaluated topic predictions from 5 students and lower error than the score baseline. These are initial development thresholds.</p>
     <p>Predicts follow-up topic scores from a student’s first score and earlier first scores from other students on the same quiz version. The baseline predicts the student’s first score.</p>
     {% if prediction_count %}
     <p>{{ prediction_count }} topic predictions. Average absolute error in percentage points (lower is better).</p>
@@ -39,3 +41,4 @@
     <a href="{% url 'pilot_feedback' %}">Pilot feedback</a>
 </section>
 {% endblock %}
+

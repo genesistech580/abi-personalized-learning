@@ -66,4 +66,5 @@ def diagnostic_reviews(student, course=None):
                 continue
             if result["correct"] < result["total"]:
                 recommendations.append((lesson, topic, result))
-    return recommendations
+    from .learner_model import rank_reviews
+    return rank_reviews(student, recommendations)

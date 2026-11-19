@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="panel form-panel">
-    <h1>Diagnostic quiz</h1>
+    <h1>{% if stage == "followup" %}Follow-up quiz{% else %}Diagnostic quiz{% endif %}</h1>
     <p>{{ course.title }}</p>
     {% if latest %}
     <h2>Latest result · {{ latest.correct_count }}/{{ latest.question_count }}</h2>
@@ -10,6 +10,20 @@
         <li>{{ topic }} <strong>{{ result.correct }}/{{ result.total }}</strong></li>
         {% endfor %}
     </ul>
+    {% endif %}
+    {% if latest.question_feedback %}
+    <h2>Review</h2>
+    {% for item in latest.question_feedback %}
+    <details>
+        <summary>{{ item.prompt }}</summary>
+        {% if item.explanation %}<p>{{ item.explanation }}</p>{% endif %}
+        {% if item.practice %}<p>{{ item.practice }}</p>{% endif %}
+        {% if item.lesson_id %}<a href="{% url 'read_lesson' item.lesson_id %}">Review lesson</a>{% endif %}
+    </details>
+    {% endfor %}
+    {% endif %}
+    {% if has_followup and stage != "followup" and latest %}
+    <p><a class="button" href="?stage=followup">Follow-up quiz</a></p>
     {% endif %}
     {% if review_lessons %}
     <h2>Recommended review</h2>
@@ -35,9 +49,10 @@
         {{ form.as_p }}
         <button type="submit">{% if latest %}Submit another attempt{% else %}Submit quiz{% endif %}</button>
     </form>
-    {% else %}<p>No questions yet.</p>{% endif %}
+    {% else %}<p>No questions available.</p>{% endif %}
     <a href="{% url 'learning_path' course.pk %}">Back</a>
 </section>
 {% endblock %}
+
 
 

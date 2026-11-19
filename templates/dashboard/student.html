@@ -86,6 +86,11 @@
         {% elif section == "assessments" %}
         <h1>Assessments</h1>
         <ul class="dashboard-roster">
+            {% for course in quiz_courses %}
+            <li><a href="{% url 'diagnostic' course.pk %}">{{ course.title }} · Diagnostic quiz</a></li>
+            {% endfor %}
+        </ul>
+        <ul class="dashboard-roster">
             {% for assessment in student_assessments %}
             <li>
                 <a href="{% url 'submit_assessment' assessment.pk %}">{{ assessment.title }}</a>

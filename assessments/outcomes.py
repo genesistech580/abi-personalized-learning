@@ -46,7 +46,11 @@ def outcomes(request):
                     review_topics[topic] = review_topics.get(topic, 0) + 1
             if not latest.quiz_version:
                 continue
-            comparable = [attempt for attempt in history if attempt.quiz_version == latest.quiz_version]
+            comparable = [
+                attempt for attempt in history
+                if attempt.quiz_version == latest.quiz_version
+                or (latest.comparison_key and attempt.comparison_key == latest.comparison_key)
+            ]
             if len(comparable) < 2:
                 continue
             first = comparable[0]

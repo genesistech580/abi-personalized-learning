@@ -5,7 +5,7 @@
     <p>{{ course.title }}</p>
     <ul>
         {% for question in course.diagnostic_questions.all %}
-        <li>{{ question.topic }} · {{ question.prompt }}</li>
+        <li>{{ question.get_stage_display }} · {{ question.topic }} · {{ question.prompt }}</li>
         {% empty %}<li>No questions yet.</li>{% endfor %}
     </ul>
     <h2>Add question</h2>

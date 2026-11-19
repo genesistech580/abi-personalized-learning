@@ -51,8 +51,24 @@ class Lesson(models.Model):
 class LessonCompletion(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="completions")
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True, null=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=("lesson", "student"), name="unique_lesson_completion")
         ]
+
+
+
+class LessonVisit(models.Model):
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    first_opened_at = models.DateTimeField(auto_now_add=True)
+    last_opened_at = models.DateTimeField(auto_now=True)
+    visits = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=("lesson", "student"), name="unique_lesson_visit")
+        ]
+

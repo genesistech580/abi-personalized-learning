@@ -41,6 +41,9 @@ class DiagnosticQuestion(models.Model):
         "courses.Lesson", on_delete=models.SET_NULL, null=True, blank=True,
         related_name="diagnostic_questions",
     )
+    stage = models.CharField(max_length=12, choices=[("diagnostic", "Diagnostic"), ("followup", "Follow-up")], default="diagnostic")
+    explanation = models.TextField(blank=True)
+    practice = models.TextField(blank=True)
     topic = models.CharField(max_length=80)
     prompt = models.TextField()
     option_a = models.CharField(max_length=200)
@@ -56,6 +59,9 @@ class DiagnosticAttempt(models.Model):
     course = models.ForeignKey("courses.Course", on_delete=models.CASCADE, related_name="diagnostic_attempts")
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="diagnostic_attempts")
     results = models.JSONField()
+    stage = models.CharField(max_length=12, default="diagnostic")
+    comparison_key = models.CharField(max_length=64, blank=True)
+    question_feedback = models.JSONField(default=list, blank=True)
     quiz_version = models.CharField(max_length=64, blank=True)
     review_opened = models.BooleanField(default=False)
     submitted_at = models.DateTimeField(auto_now_add=True)

@@ -19,7 +19,7 @@ from .models import DiagnosticAttempt, DiagnosticQuestion
 class QuestionForm(forms.ModelForm):
     class Meta:
         model = DiagnosticQuestion
-        fields = ("topic", "prompt", "option_a", "option_b", "option_c", "correct", "review_lesson")
+        fields = ("stage", "topic", "prompt", "option_a", "option_b", "option_c", "correct", "explanation", "practice", "review_lesson")
 
 
 @login_required
@@ -29,7 +29,11 @@ def diagnostic(request, pk):
     if student.role != User.Role.STUDENT:
         raise PermissionDenied
     course = get_object_or_404(Course, pk=pk, enrollments__student=student)
-    questions = list(course.diagnostic_questions.order_by("pk"))
+    stage = request.GET.get("stage", "diagnostic")
+    if stage not in {"diagnostic", "followup"}:
+        from django.http import Http404
+        raise Http404
+    questions = list(course.diagnostic_questions.filter(stage=stage).order_by("pk"))
     payload = [
         (q.pk, q.topic, q.prompt, q.option_a, q.option_b, q.option_c, q.correct)
         for q in questions
@@ -46,23 +50,41 @@ def diagnostic(request, pk):
 
     if questions and form.is_valid() and form.cleaned_data["quiz_version"] != version:
         messages.error(request, "The quiz changed. Please try the updated questions.")
-        return redirect("diagnostic", pk=course.pk)
+        from django.urls import reverse
+        return redirect(reverse("diagnostic", args=[course.pk]) + "?stage=" + stage)
 
     if questions and form.is_bound and not form.errors:
         results = {}
+        feedback = []
         for question in questions:
             topic = results.setdefault(question.topic, {"correct": 0, "total": 0})
             topic["total"] += 1
-            topic["correct"] += int(form.cleaned_data[str(question.pk)] == question.correct)
-        DiagnosticAttempt.objects.create(course=course, student=student, results=results, quiz_version=version)
-        return redirect("diagnostic", pk=course.pk)
+            correct = form.cleaned_data[str(question.pk)] == question.correct
+            topic["correct"] += int(correct)
+            if not correct:
+                feedback.append({
+                    "prompt": question.prompt,
+                    "explanation": question.explanation,
+                    "practice": question.practice,
+                    "lesson_id": question.review_lesson_id,
+                })
+        comparison = hashlib.sha256(json.dumps(sorted(
+            (name, result["total"]) for name, result in results.items()
+        )).encode()).hexdigest()
+        DiagnosticAttempt.objects.create(
+            course=course, student=student, results=results, quiz_version=version,
+            stage=stage, comparison_key=comparison, question_feedback=feedback,
+        )
+        from django.urls import reverse
+        return redirect(reverse("diagnostic", args=[course.pk]) + "?stage=" + stage)
 
     attempts = list(course.diagnostic_attempts.filter(student=student).order_by("-pk")[:10])
     latest = attempts[0] if attempts else None
     review_lessons = diagnostic_reviews(student, course=course)
     return render(request, "assessments/diagnostic.html", {
         "course": course, "form": form, "latest": latest, "has_questions": bool(questions),
-        "attempts": attempts, "review_lessons": review_lessons,
+        "attempts": attempts, "review_lessons": review_lessons, "stage": stage,
+        "has_followup": course.diagnostic_questions.filter(stage="followup").exists(),
     })
 
 
