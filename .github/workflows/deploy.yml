@@ -1,0 +1,35 @@
+name: Deploy to Alwaysdata
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: alwaysdata-deployment
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: alwaysdata
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+          HOST_KEYS: ${{ secrets.ALWAYSDATA_KNOWN_HOSTS }}
+        run: |
+          test -n "$DEPLOY_KEY"
+          test -n "$HOST_KEYS"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$HOST_KEYS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+      - name: Upload release
+        run: |
+          git archive --format=tar.gz -o release.tar.gz HEAD
+          scp release.tar.gz genesistech1@ssh-genesistech1.alwaysdata.net:abi-release.tar.gz
+      - name: Deploy
+        run: |
+          ssh genesistech1@ssh-genesistech1.alwaysdata.net 'bash -s' < deployment/deploy.sh
