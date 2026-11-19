@@ -8,7 +8,7 @@
 body {
     color: #25364a;
     background-color: #f5f7fb;
-    background-image: linear-gradient(#f5f7fbf7, #f5f7fbf7), url("uew-entrance.png");
+    background-image: linear-gradient(#f5f7fbf7, #f5f7fbf7), url("uew-entrance.webp");
     font-family: Tahoma, Geneva, sans-serif;
 }
 header { background: white; border-bottom: 1px solid #e0e6ef; }
@@ -61,7 +61,7 @@ main progress { accent-color: #b5162b !important; }
 input:not([type="hidden"]), select, textarea { border-color: #cbd6e2; background: #fff; border-radius: .4rem; }
 button, .button, .dashboard-page .button { border-radius: .45rem; font-size: .9rem; }
 .auth-layout { border-radius: .85rem; }
-.auth-intro { background: linear-gradient(#09265aaa, #09265add), url("uew-entrance.png") center / cover; }
+.auth-intro { background: linear-gradient(#09265aaa, #09265add), url("uew-entrance.webp") center / cover; }
 .auth-art { display: none; }
 .auth-wordmark strong { font-size: clamp(2rem, 4vw, 3.5rem); }
 .site-footer { font-size: .8rem; color: #61758a; }

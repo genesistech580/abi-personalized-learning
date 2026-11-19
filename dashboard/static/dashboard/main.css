@@ -278,7 +278,7 @@ form button + a { display: inline-flex; align-items: center; min-height: 44px; m
 
 /* Entrance photograph from the official UEW homepage. */
 body {
-    background-image: linear-gradient(#ffffffed, #ffffffed), url("uew-entrance.png");
+    background-image: linear-gradient(#ffffffed, #ffffffed), url("uew-entrance.webp");
     background-position: center 48%;
     background-repeat: no-repeat;
     background-size: cover;

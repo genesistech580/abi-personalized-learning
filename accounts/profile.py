@@ -1,3 +1,7 @@
+from io import BytesIO
+import warnings
+from PIL import Image, ImageOps, UnidentifiedImageError
+from django.core.files.base import ContentFile
 from uuid import uuid4
 
 from django import forms
@@ -26,16 +30,20 @@ class ProfileForm(forms.ModelForm):
             return photo
         if photo.size > 5 * 1024 * 1024:
             raise ValidationError("Choose a photo under 5 MB.")
-        signature = photo.read(8)
-        photo.seek(0)
-        if signature.startswith(bytes.fromhex("ffd8ff")):
-            extension = "jpg"
-        elif signature == bytes.fromhex("89504e470d0a1a0a"):
-            extension = "png"
-        else:
-            raise ValidationError("Choose a JPEG or PNG photo.")
-        photo.name = f"{uuid4().hex}.{extension}"
-        return photo
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", Image.DecompressionBombWarning)
+                with Image.open(photo) as image:
+                    if image.format not in {"JPEG", "PNG"}:
+                        raise ValidationError("Choose a JPEG or PNG photo.")
+                    image.load()
+                    portrait = ImageOps.exif_transpose(image).convert("RGB")
+                    portrait.thumbnail((480, 600))
+                    output = BytesIO()
+                    portrait.save(output, format="JPEG", quality=80, optimize=True)
+        except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError, Image.DecompressionBombWarning):
+            raise ValidationError("Choose a valid photo.")
+        return ContentFile(output.getvalue(), name=f"{uuid4().hex}.jpg")
 
 
 @login_required
@@ -70,3 +78,4 @@ def profile_photo(request):
     response["Cache-Control"] = "private, no-store"
     response["X-Content-Type-Options"] = "nosniff"
     return response
+
