@@ -7,12 +7,18 @@
     <title>{% block title %}ABI's AI-Powered Personalized Learning{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'dashboard/main.css' %}?v=topbar-portrait">
     {% block styles %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'dashboard/theme.css' %}?v=popup-menu">
+    <link rel="stylesheet" href="{% static 'dashboard/theme.css' %}?v=compact-header">
 </head>
 <body>
     <header>
         <nav class="container topbar" aria-label="Main navigation">
-            <a class="brand" href="{% url 'dashboard' %}">ABI's AI-Powered Personalized Learning</a>
+            <a class="brand" href="{% url 'dashboard' %}">
+                <span class="header-monogram" aria-hidden="true">ABI</span>
+                <span class="header-brand-copy">
+                    <strong>ABI TECH</strong>
+                    <span>AI-Powered Personalized Learning</span>
+                </span>
+            </a>
             {% if user.is_authenticated %}
             <a class="profile-link" href="{% url 'profile' %}" aria-label="Profile">
                 {% if user.photo %}
@@ -40,6 +46,7 @@
     <script src="{% static 'dashboard/password.js' %}" defer></script>
 </body>
 </html>
+
 
 
 
