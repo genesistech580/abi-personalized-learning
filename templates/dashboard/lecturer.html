@@ -14,7 +14,7 @@
         <a href="?section=insights"{% if section == 'insights' %} aria-current="page"{% endif %}>Diagnostic insights</a>
         <a href="{% url 'outcomes' %}">Pilot outcomes</a>
         <a href="{% url 'learning_assistant' %}">Learning assistant</a>
-        {% include "dashboard/profile_link.html" %}
+        <a href="{% url 'profile' %}">Profile</a>
         {% include "dashboard/sidebar_signout.html" %}
     </nav>
     <div class="dashboard-content">
@@ -77,5 +77,6 @@
     </div>
 </div>
 {% endblock %}
+
 
 

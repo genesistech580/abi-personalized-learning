@@ -16,7 +16,7 @@
         <a href="{% url 'outcomes' %}">Pilot outcomes</a>
         <a href="{% url 'pilot_feedback' %}">Pilot feedback</a>
         <a href="{% url 'pilot_evaluation' %}">Pilot evaluation</a>
-        {% include "dashboard/profile_link.html" %}
+        <a href="{% url 'profile' %}">Profile</a>
         {% include "dashboard/sidebar_signout.html" %}
     </nav>
     <div class="dashboard-content">
@@ -82,4 +82,5 @@
     </div>
 </div>
 {% endblock %}
+
 

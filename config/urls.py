@@ -4,6 +4,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from accounts.profile import profile, profile_photo
+from accounts.management_views import manage_account
 from accounts.views import AccountLoginView, register
 from assessments.diagnostics import add_diagnostic_question, diagnostic
 from assessments.evaluation import pilot_evaluation
@@ -17,6 +18,8 @@ from dashboard.views import create_record, index
 
 
 urlpatterns = [
+    path("accounts/<int:pk>/edit/", manage_account, name="edit_account"),
+    path("accounts/<int:pk>/delete/", manage_account, {"delete": True}, name="delete_account"),
     path("assistant/", learning_assistant, name="learning_assistant"),
     path("pilot-evaluation/", pilot_evaluation, name="pilot_evaluation"),
     path("pilot-feedback/", pilot_feedback, name="pilot_feedback"),
@@ -56,6 +59,7 @@ urlpatterns = [
     path("submissions/<int:pk>/grade/", grade, name="grade_submission"),
     path("admin/", admin.site.urls),
 ]
+
 
 
 

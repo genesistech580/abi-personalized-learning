@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel form-panel">
+    <h1>Delete {{ account.get_role_display|lower }}</h1>
+    <p>{{ account.username }}</p>
+    <p>This permanently removes the account and its associated student records. Lecturers with assigned courses must have those courses reassigned first.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Delete account</button>
+        <a href="{% url 'dashboard' %}?section=people">Cancel</a>
+    </form>
+</section>
+{% endblock %}
