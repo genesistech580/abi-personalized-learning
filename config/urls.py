@@ -1,3 +1,4 @@
+from dashboard.releases import system_version
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
@@ -19,6 +20,7 @@ from dashboard.views import create_record, index
 
 
 urlpatterns = [
+    path("system/version/", system_version, name="system_version"),
     path("teaching/students/", teaching, name="teaching_students"),
     path("teaching/courses/<int:pk>/", teaching, name="course_report"),
     path("teaching/courses/<int:pk>/students/<int:student_id>/", teaching, name="student_detail"),

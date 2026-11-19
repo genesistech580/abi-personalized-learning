@@ -24,6 +24,7 @@ tar -xzf "$HOME/abi-release.tar.gz" -C .
 .venv/bin/python manage.py optimize_photos --settings=config.hosting
 .venv/bin/python manage.py collectstatic --noinput --settings=config.hosting
 
+printf '%s\n' "$stamp" > deployment/release.txt
 touch deployment/reload.trigger
 curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 3     https://genesistech1.alwaysdata.net/abitech/accounts/login/ > /dev/null
 echo "Deployment verified. Backup: $backup"
