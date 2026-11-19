@@ -21,10 +21,11 @@
     <h2>Lessons</h2>
     <ol>
         {% for lesson in lessons %}
-        <li><a href="{% url 'read_lesson' lesson.pk %}">{{ lesson.title }}</a>{% if lesson.completed %} · Complete{% endif %}</li>
+        <li><a href="{% url 'read_lesson' lesson.pk %}">{{ lesson.title }}</a>{% if user.role == "lecturer" %} · {{ lesson.get_status_display }} · <a href="{% url 'content_preview' 'lesson' lesson.pk %}">Preview</a> · <a href="{% url 'edit_content' 'lesson' lesson.pk %}">Edit</a>{% endif %}{% if lesson.completed %} · Complete{% endif %}</li>
         {% empty %}<li>No lessons yet.</li>{% endfor %}
     </ol>
 </section>
 {% endblock %}
+
 
 

@@ -6,7 +6,7 @@ from django.conf import settings
 
 def course_reply(course, role, messages):
     materials = "\n\n".join(
-        f"{lesson.title}\n{lesson.content[:1200]}" for lesson in course.lessons.all()[:8]
+        f"{lesson.title}\n{lesson.content[:1200]}" for lesson in course.lessons.filter(status="published")[:8]
     )
     task = (
         "Explain concepts and give hints and practice examples."

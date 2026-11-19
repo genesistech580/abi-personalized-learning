@@ -5,7 +5,7 @@ from django.db.models import Count, Exists, F, OuterRef, Prefetch, Subquery
 from django.shortcuts import redirect, render
 
 from accounts.models import User
-from assessments.models import Assessment, DiagnosticAttempt, Submission
+from assessments.models import Assessment, DiagnosticAttempt, LearningFeedback, Submission
 from courses.models import Course, Enrollment, Lesson, LessonCompletion
 from recommendations.services import diagnostic_reviews, for_student
 
@@ -29,6 +29,7 @@ def index(request):
         if section not in {"overview", "courses", "catalog", "assessments", "recommended", "performance"}:
             return redirect("dashboard")
         context["section"] = section
+        context["lecturer_feedback"] = LearningFeedback.objects.filter(student=user, course__enrollments__student=user).select_related("course", "lesson").order_by("-pk")[:20]
         if section == "performance":
             attempts = DiagnosticAttempt.objects.filter(
                 student=user, course__enrollments__student=user
@@ -87,7 +88,7 @@ def index(request):
             .order_by("course__code", "title", "pk")
         )
         completions = LessonCompletion.objects.filter(lesson=OuterRef("pk"), student=user)
-        lessons = Lesson.objects.annotate(completed=Exists(completions))
+        lessons = Lesson.objects.filter(status="published").annotate(completed=Exists(completions))
         courses = Course.objects.filter(enrollments__student=user).prefetch_related(
             Prefetch("lessons", queryset=lessons, to_attr="learning_lessons")
         )
@@ -140,6 +141,7 @@ def index(request):
         if section not in {"overview", "courses", "people", "enrollments", "pilot"}:
             return redirect("dashboard")
         context["section"] = section
+        context["lecturer_feedback"] = LearningFeedback.objects.filter(student=user, course__enrollments__student=user).select_related("course", "lesson").order_by("-pk")[:20]
         if section == "pilot":
             learner_attempts = DiagnosticAttempt.objects.filter(
                 course__enrollments__student_id=F("student_id")
@@ -218,6 +220,7 @@ def create_record(request, form_class, title, success_message):
         return redirect("dashboard")
 
     return render(request, "dashboard/create.html", {"form": form, "title": title})
+
 
 
 

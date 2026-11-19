@@ -14,6 +14,7 @@
         <a href="?section=insights"{% if section == 'insights' %} aria-current="page"{% endif %}>Diagnostic insights</a>
         <a href="{% url 'outcomes' %}">Pilot outcomes</a>
         <a href="{% url 'learning_assistant' %}">Learning assistant</a>
+        <a href="{% url 'teaching_students' %}">My students</a>
         <a href="{% url 'profile' %}">Profile</a>
         {% include "dashboard/sidebar_signout.html" %}
     </nav>
@@ -42,7 +43,7 @@
             <li>
                 <strong>{{ course.code }} · {{ course.title }}</strong>
                 <div class="course-actions">
-                    <a href="{% url 'learning_path' course.pk %}">Lessons</a>
+                    <a href="{% url 'learning_path' course.pk %}">Lessons</a> <a href="{% url 'course_report' course.pk %}">Progress report</a> <a href="{% url 'publish_check' course.pk %}">Quiz review</a>
                     <a href="{% url 'edit_course' course.pk %}">Edit course</a>
                     <a class="delete-link" href="{% url 'delete_course' course.pk %}">Delete course</a>
                 </div>
@@ -77,6 +78,7 @@
     </div>
 </div>
 {% endblock %}
+
 
 
 

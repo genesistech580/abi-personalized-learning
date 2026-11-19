@@ -5,7 +5,7 @@
     <p>{{ course.title }}</p>
     <ul>
         {% for question in course.diagnostic_questions.all %}
-        <li>{{ question.get_stage_display }} · {{ question.topic }} · {{ question.prompt }}</li>
+        <li>{{ question.get_stage_display }} · {{ question.topic }} · {{ question.prompt }} · {{ question.get_status_display }} · <a href="{% url 'content_preview' 'question' question.pk %}">Preview</a> · <a href="{% url 'edit_content' 'question' question.pk %}">Edit</a></li>
         {% empty %}<li>No questions yet.</li>{% endfor %}
     </ul>
     <h2>Add question</h2>
@@ -17,3 +17,4 @@
     </form>
 </section>
 {% endblock %}
+

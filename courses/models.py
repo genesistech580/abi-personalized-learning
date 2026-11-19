@@ -3,6 +3,7 @@ from django.db import models
 
 
 class Course(models.Model):
+    quiz_approval = models.CharField(max_length=64, blank=True)
     code = models.CharField(max_length=20, unique=True)
     title = models.CharField(max_length=200)
     lecturer = models.ForeignKey(
@@ -39,6 +40,7 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons")
     title = models.CharField(max_length=200)
     position = models.PositiveIntegerField(default=1)
+    status = models.CharField(max_length=10, default="published", choices=[("draft", "Draft"), ("published", "Published"), ("archived", "Archived")])
     content = models.TextField()
 
     class Meta:

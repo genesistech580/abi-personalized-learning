@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="panel">
+<h1>{% if kind == "lesson" %}{{ item.title }}{% else %}Question preview{% endif %}</h1>
+<p>{{ item.get_status_display }}</p>
+{% if kind == "lesson" %}{{ item.content|linebreaks }}
+{% else %}<p>{{ item.prompt }}</p><ol><li>{{ item.option_a }}</li><li>{{ item.option_b }}</li><li>{{ item.option_c }}</li></ol><p>Answer: {{ item.correct }}</p>{{ item.explanation|linebreaks }}{% endif %}
+<a class="button" href="{% url 'edit_content' kind item.pk %}">Edit</a>
+<a href="{% url 'learning_path' item.course_id %}">Back to course</a>
+</article>
+{% endblock %}

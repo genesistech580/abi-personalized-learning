@@ -48,7 +48,7 @@ def diagnostic_reviews(student, course=None):
     latest = attempts.filter(pk=Subquery(latest_ids)).order_by("-pk")
     results_by_course = {attempt.course_id: attempt.results for attempt in latest}
     questions = DiagnosticQuestion.objects.filter(
-        course_id__in=results_by_course, review_lesson__course_id=F("course_id")
+        course_id__in=results_by_course, review_lesson__course_id=F("course_id"), review_lesson__status="published"
     ).select_related("review_lesson__course").order_by("course_id", "pk")
     recommendations = []
     seen = set()
@@ -60,7 +60,7 @@ def diagnostic_reviews(student, course=None):
         if result and result["correct"] < result["total"] and key not in seen:
             recommendations.append((question.review_lesson, question.topic, result))
             seen.add(key)
-    for lesson in Lesson.objects.filter(course_id__in=results_by_course).select_related("course"):
+    for lesson in Lesson.objects.filter(course_id__in=results_by_course, status="published").select_related("course"):
         for topic, result in results_by_course[lesson.course_id].items():
             if (lesson.course_id, topic) in linked_topics or topic.casefold() != lesson.title.casefold():
                 continue

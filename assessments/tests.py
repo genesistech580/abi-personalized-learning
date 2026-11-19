@@ -23,6 +23,10 @@ class LearningWorkflowTests(TestCase):
             )
         self.client.force_login(self.student)
 
+        from assessments.publishing import signature
+        self.course.quiz_approval = signature(self.course)
+        self.course.save(update_fields=["quiz_approval"])
+
     def answer(self, stage, answer):
         url = f"/courses/{self.course.pk}/diagnostic/?stage={stage}"
         page = self.client.get(url)
@@ -62,3 +66,51 @@ class LearningWorkflowTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertFalse(self.student.diagnostic_attempts.exists())
+
+
+class LecturerManagementTests(LearningWorkflowTests):
+    def test_roster_feedback_and_permissions(self):
+        Enrollment.objects.create(student=self.student, course=self.course)
+        url = f"/teaching/courses/{self.course.pk}/students/{self.student.pk}/"
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.client.force_login(self.teacher)
+        self.assertContains(self.client.get(url), self.student.username)
+        self.assertEqual(self.client.post(url, {
+            "topic": "Variables", "comment": "Review declarations.", "lesson": self.lesson.pk,
+        }).status_code, 302)
+        self.client.force_login(self.student)
+        self.assertContains(self.client.get("/?section=recommended"), "Review declarations.")
+        other = User.objects.create_user("other-teacher", role="lecturer")
+        self.client.force_login(other)
+        self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_edit_archive_and_approval_invalidation(self):
+        Enrollment.objects.create(student=self.student, course=self.course)
+        self.client.force_login(self.teacher)
+        url = f"/teaching/lesson/{self.lesson.pk}/edit/"
+        self.assertEqual(self.client.post(url, {
+            "title": self.lesson.title, "position": 1, "content": "Updated", "status": "archived",
+        }).status_code, 302)
+        self.client.force_login(self.student)
+        self.assertEqual(self.client.get(f"/lessons/{self.lesson.pk}/").status_code, 404)
+        from assessments.publishing import approved
+        self.course.refresh_from_db()
+        self.assertTrue(approved(self.course))
+        question = self.course.diagnostic_questions.first()
+        question.prompt = "Changed question"
+        question.save()
+        self.assertFalse(approved(self.course))
+        self.assertEqual(self.client.get(f"/courses/{self.course.pk}/diagnostic/?stage=followup").status_code, 302)
+        self.assertFalse(self.student.diagnostic_attempts.exists())
+
+    def test_snapshot_survives_question_change(self):
+        Enrollment.objects.create(student=self.student, course=self.course)
+        self.answer("diagnostic", "B")
+        attempt = self.student.diagnostic_attempts.get()
+        original = attempt.question_snapshot[0]["prompt"]
+        question = self.course.diagnostic_questions.get(stage="diagnostic")
+        question.prompt = "Revised"
+        question.save()
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.question_snapshot[0]["prompt"], original)
+

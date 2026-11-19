@@ -41,6 +41,7 @@ class DiagnosticQuestion(models.Model):
         "courses.Lesson", on_delete=models.SET_NULL, null=True, blank=True,
         related_name="diagnostic_questions",
     )
+    status = models.CharField(max_length=10, default="published", choices=[("draft", "Draft"), ("published", "Published"), ("archived", "Archived")])
     stage = models.CharField(max_length=12, choices=[("diagnostic", "Diagnostic"), ("followup", "Follow-up")], default="diagnostic")
     explanation = models.TextField(blank=True)
     practice = models.TextField(blank=True)
@@ -61,6 +62,7 @@ class DiagnosticAttempt(models.Model):
     results = models.JSONField()
     stage = models.CharField(max_length=12, default="diagnostic")
     comparison_key = models.CharField(max_length=64, blank=True)
+    question_snapshot = models.JSONField(default=list, blank=True)
     question_feedback = models.JSONField(default=list, blank=True)
     quiz_version = models.CharField(max_length=64, blank=True)
     review_opened = models.BooleanField(default=False)
@@ -82,3 +84,14 @@ class PilotFeedback(models.Model):
     ease = models.PositiveSmallIntegerField()
     clarity = models.PositiveSmallIntegerField()
     usefulness = models.PositiveSmallIntegerField()
+
+
+
+class LearningFeedback(models.Model):
+    course = models.ForeignKey("courses.Course", on_delete=models.CASCADE)
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="learning_feedback")
+    lecturer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    topic = models.CharField(max_length=80)
+    comment = models.TextField(max_length=1500)
+    lesson = models.ForeignKey("courses.Lesson", on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)

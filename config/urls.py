@@ -12,12 +12,19 @@ from assessments.feedback import pilot_feedback
 from assessments.outcomes import outcomes
 from assessments.views import grade, review, submit
 from courses.views import add_lesson, enroll_course, learning_path, manage_course, read_lesson
+from dashboard.teaching import teaching, edit_content, content_preview, publish_check
 from dashboard.assistant import learning_assistant
 from dashboard.forms import AssessmentForm, CourseForm, EnrollmentForm, LecturerForm
 from dashboard.views import create_record, index
 
 
 urlpatterns = [
+    path("teaching/students/", teaching, name="teaching_students"),
+    path("teaching/courses/<int:pk>/", teaching, name="course_report"),
+    path("teaching/courses/<int:pk>/students/<int:student_id>/", teaching, name="student_detail"),
+    path("teaching/<str:kind>/<int:pk>/edit/", edit_content, name="edit_content"),
+    path("teaching/<str:kind>/<int:pk>/preview/", content_preview, name="content_preview"),
+    path("teaching/courses/<int:pk>/publish/", publish_check, name="publish_check"),
     path("accounts/<int:pk>/edit/", manage_account, name="edit_account"),
     path("accounts/<int:pk>/delete/", manage_account, {"delete": True}, name="delete_account"),
     path("assistant/", learning_assistant, name="learning_assistant"),
@@ -59,6 +66,7 @@ urlpatterns = [
     path("submissions/<int:pk>/grade/", grade, name="grade_submission"),
     path("admin/", admin.site.urls),
 ]
+
 
 
 

@@ -47,7 +47,7 @@ def learning_assistant(request):
             reviews=diagnostic_reviews(user, course=course),
             tried_quiz=course.diagnostic_attempts.filter(student=user).exists(),
             has_quiz=course.diagnostic_questions.exists(),
-            next_lesson=course.lessons.annotate(done=Exists(completions)).filter(done=False).first(),
+            next_lesson=course.lessons.filter(status="published").annotate(done=Exists(completions)).filter(done=False).first(),
         )
     elif course:
         attempts = DiagnosticAttempt.objects.filter(

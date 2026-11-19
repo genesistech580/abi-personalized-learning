@@ -14,12 +14,13 @@ from courses.models import Course
 from recommendations.services import diagnostic_reviews
 
 from .models import DiagnosticAttempt, DiagnosticQuestion
+from .publishing import approved
 
 
 class QuestionForm(forms.ModelForm):
     class Meta:
         model = DiagnosticQuestion
-        fields = ("stage", "topic", "prompt", "option_a", "option_b", "option_c", "correct", "explanation", "practice", "review_lesson")
+        fields = ("status", "stage", "topic", "prompt", "option_a", "option_b", "option_c", "correct", "explanation", "practice", "review_lesson")
 
 
 @login_required
@@ -33,7 +34,7 @@ def diagnostic(request, pk):
     if stage not in {"diagnostic", "followup"}:
         from django.http import Http404
         raise Http404
-    questions = list(course.diagnostic_questions.filter(stage=stage).order_by("pk"))
+    questions = list(course.diagnostic_questions.filter(stage=stage, status="published").order_by("pk"))
     payload = [
         (q.pk, q.topic, q.prompt, q.option_a, q.option_b, q.option_c, q.correct)
         for q in questions
@@ -47,6 +48,10 @@ def diagnostic(request, pk):
             choices=(("A", question.option_a), ("B", question.option_b), ("C", question.option_c)),
             widget=forms.RadioSelect,
         )
+
+    if stage == "followup" and not approved(course):
+        messages.info(request, "Follow-up quiz is awaiting lecturer review.")
+        return redirect("learning_path", pk=course.pk)
 
     if questions and form.is_valid() and form.cleaned_data["quiz_version"] != version:
         messages.error(request, "The quiz changed. Please try the updated questions.")
@@ -68,12 +73,16 @@ def diagnostic(request, pk):
                     "practice": question.practice,
                     "lesson_id": question.review_lesson_id,
                 })
-        comparison = hashlib.sha256(json.dumps(sorted(
-            (name, result["total"]) for name, result in results.items()
-        )).encode()).hexdigest()
         DiagnosticAttempt.objects.create(
             course=course, student=student, results=results, quiz_version=version,
-            stage=stage, comparison_key=comparison, question_feedback=feedback,
+            stage=stage, comparison_key=(
+                course.quiz_approval if approved(course) else ""
+            ), question_feedback=feedback,
+            question_snapshot=[
+                {"topic": q.topic, "prompt": q.prompt, "selected": form.cleaned_data[str(q.pk)],
+                 "correct": q.correct, "options": [q.option_a, q.option_b, q.option_c]}
+                for q in questions
+            ],
         )
         from django.urls import reverse
         return redirect(reverse("diagnostic", args=[course.pk]) + "?stage=" + stage)
@@ -94,7 +103,7 @@ def add_diagnostic_question(request, pk):
     if request.user.role != User.Role.LECTURER:
         raise PermissionDenied
     course = get_object_or_404(request.user.teaching_courses, pk=pk)
-    form = QuestionForm(request.POST if request.method == "POST" else None)
+    form = QuestionForm(request.POST if request.method == "POST" else None, initial={"status": "draft"})
     form.fields["review_lesson"].queryset = course.lessons.all()
     if form.is_valid():
         question = form.save(commit=False)
@@ -102,6 +111,7 @@ def add_diagnostic_question(request, pk):
         question.save()
         return redirect("add_diagnostic_question", pk=course.pk)
     return render(request, "assessments/diagnostic_author.html", {"course": course, "form": form})
+
 
 
 

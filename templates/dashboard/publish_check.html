@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Quiz review · {{ course.title }}</h1>
+<p>{% if approved %}Approved{% elif matched %}Awaiting lecturer confirmation{% else %}Topic coverage needs attention{% endif %}</p>
+<ul class="dashboard-roster">{% for topic, first, followup in coverage %}<li>{{ topic }}<span>{{ first }} diagnostic · {{ followup }} follow-up</span></li>{% endfor %}</ul>
+<details><summary>Preview published questions</summary>
+{% for question in questions %}<p>{{ question.get_stage_display }} · {{ question.topic }} · <a href="{% url 'content_preview' 'question' question.pk %}">{{ question.prompt }}</a></p>{% endfor %}
+</details>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Approve follow-up</button></form>
+<p><a href="{% url 'add_diagnostic_question' course.pk %}">Manage questions</a></p>
+{% endblock %}

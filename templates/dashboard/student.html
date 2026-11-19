@@ -103,6 +103,13 @@
         {% include "dashboard/performance.html" %}
         {% elif section == "recommended" %}
         <h1>Recommended next</h1>
+{% for feedback in lecturer_feedback %}
+<section class="panel">
+<strong>{{ feedback.course.title }} · {{ feedback.topic }}</strong>
+{{ feedback.comment|linebreaks }}
+{% if feedback.lesson and feedback.lesson.status == "published" %}<a href="{% url 'read_lesson' feedback.lesson.pk %}">Review lesson</a>{% endif %}
+</section>
+{% endfor %}
         <ul class="dashboard-roster">
             {% for lesson, topic, result in diagnostic_reviews %}
             <li><a href="{% url 'read_lesson' lesson.pk %}">Review {{ lesson.title }}</a>
@@ -124,6 +131,7 @@
     </div>
 </div>
 {% endblock %}
+
 
 
 

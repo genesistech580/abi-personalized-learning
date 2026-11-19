@@ -17,7 +17,7 @@ from django.utils import timezone
 class LessonForm(forms.ModelForm):
     class Meta:
         model = Lesson
-        fields = ("title", "position", "content")
+        fields = ("title", "position", "content", "status")
 
 
 @login_required
@@ -31,7 +31,7 @@ def learning_path(request, pk):
         raise PermissionDenied
 
     course = get_object_or_404(courses, pk=pk)
-    lessons = course.lessons.all()
+    lessons = course.lessons.all() if user.role == User.Role.LECTURER else course.lessons.filter(status="published")
     next_lesson = None
     completed_count = 0
     if user.role == User.Role.STUDENT:
@@ -52,7 +52,7 @@ def add_lesson(request, pk):
     if request.user.role != User.Role.LECTURER:
         raise PermissionDenied
     course = get_object_or_404(request.user.teaching_courses, pk=pk)
-    form = LessonForm(request.POST if request.method == "POST" else None)
+    form = LessonForm(request.POST if request.method == "POST" else None, initial={"status": "draft"})
     if form.is_valid():
         lesson = form.save(commit=False)
         lesson.course = course
@@ -66,7 +66,7 @@ def add_lesson(request, pk):
 def read_lesson(request, pk):
     user = request.user
     if user.role == User.Role.STUDENT:
-        lessons = Lesson.objects.filter(course__enrollments__student=user)
+        lessons = Lesson.objects.filter(course__enrollments__student=user, status="published")
     elif user.role == User.Role.LECTURER:
         lessons = Lesson.objects.filter(course__lecturer=user)
     else:
