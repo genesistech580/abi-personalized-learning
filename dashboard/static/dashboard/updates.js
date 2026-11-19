@@ -1,6 +1,7 @@
 (() => {
     const script = document.currentScript;
     const version = script.dataset.version;
+    const activity = script.dataset.activity;
     let dirty = false;
     let checking = false;
     let pending = false;
@@ -13,7 +14,9 @@
             const response = await fetch(script.dataset.url, {cache: "no-store", credentials: "same-origin"});
             if (!response.ok) return;
             const data = await response.json();
-            if (!data.version || data.version === version) return;
+            const releaseChanged = data.version && data.version !== version;
+            const activityChanged = activity && data.activity && data.activity !== activity;
+            if (!releaseChanged && !activityChanged) return;
             pending = true;
             if (!dirty) { window.location.reload(); return; }
             const notice = document.createElement("p");

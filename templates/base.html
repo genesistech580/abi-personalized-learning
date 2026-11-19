@@ -44,7 +44,7 @@
     </main>
     <footer class="site-footer">&copy; Developed By Abigail Atesika</footer>
     <script src="{% static 'dashboard/password.js' %}" defer></script>
-    <script src="{% static 'dashboard/updates.js' %}?v={{ release_version }}" data-version="{{ release_version }}" data-url="{% url 'system_version' %}" defer></script>
+    <script src="{% static 'dashboard/updates.js' %}?v={{ release_version }}" data-version="{{ release_version }}" data-activity="{{ activity_version }}" data-url="{% url 'system_version' %}" defer></script>
 </body>
 </html>
 
