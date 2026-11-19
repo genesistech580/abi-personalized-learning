@@ -1,0 +1,8 @@
+<a class="sidebar-profile" href="{% url 'profile' %}" aria-label="Profile" title="Profile">
+    {% if user.photo %}
+    <img src="{% url 'profile_photo' %}" alt="" width="40" height="48">
+    {% else %}
+    <span class="portrait-placeholder" aria-hidden="true"><span></span></span>
+    {% endif %}
+    <span class="visually-hidden">Profile</span>
+</a>
