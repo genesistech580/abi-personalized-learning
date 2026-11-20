@@ -1,0 +1,26 @@
+name: Check hosted AI chat
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    environment: alwaysdata
+    steps:
+      - name: Configure SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+          HOST_KEYS: ${{ secrets.ALWAYSDATA_KNOWN_HOSTS }}
+        run: |
+          test -n "$DEPLOY_KEY"
+          test -n "$HOST_KEYS"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$HOST_KEYS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+      - name: Diagnose hosted AI configuration and response
+        run: |
+          ssh genesistech1@ssh-genesistech1.alwaysdata.net 'cd /home/genesistech1/abi-learning && source .hosting-env && .venv/bin/python manage.py check_ai_chat --probe --settings=config.hosting'
