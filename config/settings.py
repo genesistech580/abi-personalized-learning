@@ -153,3 +153,6 @@ EMAIL_TIMEOUT = 10
 
 OPENAI_API_KEY = environ.get("OPENAI_API_KEY", "")
 OPENAI_CHAT_MODEL = environ.get("OPENAI_CHAT_MODEL", "gpt-4.1-mini")
+
+# Free course help is the default; paid OpenAI use requires an explicit admin choice.
+CHAT_DEFAULT_MODE = environ.get("CHAT_MODE", "free")

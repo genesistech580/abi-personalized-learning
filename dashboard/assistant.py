@@ -13,7 +13,7 @@ from recommendations.services import diagnostic_reviews
 
 
 from .services import record_service
-from .chat import course_reply, ChatError, chat_configuration
+from .chat import course_reply, ChatError, chat_configuration, chat_mode
 
 
 class ChatForm(forms.Form):
@@ -88,14 +88,14 @@ def learning_assistant(request):
             else:
                 history = conversation + [{"role": "assistant", "content": reply}]
                 request.session[chat_key] = history
-                record_service("ai", True, "AI provider returned a reply.")
+                record_service("course_help" if chat_mode() == "free" else "ai", True, "Free course help returned lesson content." if chat_mode() == "free" else "AI provider returned a reply.")
                 if request.headers.get("Accept") == "application/json":
                     return JsonResponse({"history": history})
                 return redirect(f"{reverse('learning_assistant')}?course={course.pk}#course-chat")
         if request.method == "POST" and request.headers.get("Accept") == "application/json":
             errors = [str(error) for errors in form.errors.values() for error in errors]
             return JsonResponse({"error": " ".join(errors)}, status=400)
-        context.update(chat_form=form, chat_history=history, chat_enabled=bool(chat_configuration()[0]))
+        context.update(chat_form=form, chat_history=history, chat_enabled=chat_mode() == "free" or bool(chat_configuration()[0]), chat_mode=chat_mode(), chat_lessons=course.lessons.filter(status="published")[:12])
     return render(request, "dashboard/assistant.html", context)
 
 

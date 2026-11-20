@@ -60,9 +60,9 @@
 </section>
 {% else %}<p>Select a course and choose <strong>Show guidance</strong>.</p>{% endif %}
 <section class="panel" id="course-chat" aria-labelledby="chat-title">
-    <h2 id="chat-title">AI chat</h2>
+    <h2 id="chat-title">{% if chat_mode == "free" %}Course help · Free{% else %}AI chat{% endif %}</h2>
     {% if chat_enabled %}
-    <p class="muted">Messages and course excerpts are sent to OpenAI. Keep personal information out of your message.</p>
+    {% if chat_mode == "free" %}<p class="muted">Find answers in published course lessons. Free mode uses lesson search, not generated AI replies.</p>{% else %}<p class="muted">Messages and course excerpts are sent to OpenAI. Keep personal information out of your message.</p>{% endif %}
     <div class="assistant-messages" id="chat-messages" role="log" aria-live="polite" aria-label="Conversation">
         {% for message in chat_history %}
         <div class="chat-message chat-{{ message.role }}">
@@ -80,6 +80,7 @@
     {% else %}
     <p>Chat is not enabled yet. Ask your administrator to enable it in System status.</p>
     {% endif %}
+{% if chat_lessons %}<details><summary>Course resources</summary><ul>{% for lesson in chat_lessons %}<li><a href="{% url 'read_lesson' lesson.pk %}">{{ lesson.title }}</a></li>{% endfor %}</ul></details>{% endif %}
 </section>
 {% elif user.role == "student" %}
 <p>Enroll in a course to get guidance.</p>

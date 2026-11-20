@@ -76,7 +76,7 @@ class ChatTests(TestCase):
         other = Course.objects.create(code="PRIVATE", title="Other", lecturer=self.teacher)
         self.assertEqual(self.client.post(reverse("learning_assistant") + f"?course={other.pk}", {"message": "Hello"}).status_code, 404)
 
-    @override_settings(OPENAI_API_KEY="")
+    @override_settings(OPENAI_API_KEY="", CHAT_DEFAULT_MODE="openai")
     def test_missing_key_is_explained_without_inventing_a_reply(self):
         self.client.force_login(self.student)
         with TemporaryDirectory() as folder, override_settings(BASE_DIR=Path(folder)):
@@ -84,3 +84,45 @@ class ChatTests(TestCase):
             response = self.client.post(self.url, {"message": "Hello"}, HTTP_ACCEPT="application/json")
             self.assertEqual(response.status_code, 400)
             self.assertIn("System status", response.json()["error"])
+
+
+class FreeCourseHelpTests(TestCase):
+    def setUp(self):
+        from courses.models import Lesson
+        self.teacher = User.objects.create_user("free-teacher", role="lecturer")
+        self.student = User.objects.create_user("free-student")
+        self.course = Course.objects.create(code="FREE200", title="Algebra", lecturer=self.teacher)
+        Enrollment.objects.create(course=self.course, student=self.student)
+        Lesson.objects.create(course=self.course, title="Variables", content="A variable is a symbol representing a value.")
+        Lesson.objects.create(course=self.course, title="Secret draft", content="Do not disclose draft content.", status="draft")
+        self.client.force_login(self.student)
+
+    @override_settings(CHAT_DEFAULT_MODE="free", OPENAI_API_KEY="sk-paid-key-not-used")
+    def test_free_chat_returns_published_content_without_any_api_call(self):
+        with TemporaryDirectory() as folder, override_settings(BASE_DIR=Path(folder)):
+            with patch("dashboard.chat.urlopen") as provider:
+                response = self.client.post(reverse("learning_assistant") + f"?course={self.course.pk}", {"message": "What is a variable?"}, HTTP_ACCEPT="application/json")
+            provider.assert_not_called()
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("symbol representing a value", response.json()["history"][-1]["content"])
+            self.assertNotIn("Do not disclose", response.content.decode())
+            page = self.client.get(reverse("learning_assistant") + f"?course={self.course.pk}")
+            self.assertContains(page, "Course help · Free")
+            self.assertContains(page, "not generated AI replies")
+
+    @override_settings(CHAT_DEFAULT_MODE="free")
+    def test_unknown_topic_is_not_invented_and_drafts_are_excluded(self):
+        from dashboard.chat import free_course_reply
+        text = free_course_reply(self.course, "student", [{"role": "user", "content": "Explain quantum teleportation"}])
+        self.assertIn("could not find", text)
+        self.assertNotIn("Secret draft", text)
+
+    @override_settings(CHAT_DEFAULT_MODE="free")
+    def test_connection_test_in_free_mode_does_not_contact_openai(self):
+        admin = User.objects.create_user("free-admin", role="administrator")
+        self.client.force_login(admin)
+        with TemporaryDirectory() as folder, override_settings(BASE_DIR=Path(folder)):
+            with patch("dashboard.adminops.request_reply") as provider:
+                response = self.client.post(reverse("admin_hub", args=["system"]), {"action": "test_ai"})
+            provider.assert_not_called()
+            self.assertEqual(response.status_code, 302)

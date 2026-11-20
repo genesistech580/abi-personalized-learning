@@ -192,7 +192,7 @@ class AdministratorOperationsTests(TestCase):
             form.send_mail("registration/password_reset_subject.txt", "registration/password_reset_email.html", context, "sender@example.com", self.student.email)
         status.refresh_from_db(); self.assertTrue(status.successful)
 
-    @override_settings(OPENAI_API_KEY="test-key")
+    @override_settings(OPENAI_API_KEY="test-key", CHAT_DEFAULT_MODE="openai")
     def test_ai_monitor_records_actual_success(self):
         from dashboard.models import ServiceStatus
         self.client.force_login(self.student)

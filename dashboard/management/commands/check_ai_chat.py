@@ -1,6 +1,6 @@
 """AI diagnostics without printing keys, prompts or provider response bodies."""
 from django.core.management.base import BaseCommand
-from dashboard.chat import chat_configuration, request_reply, ChatError
+from dashboard.chat import chat_configuration, request_reply, ChatError, chat_mode
 from dashboard.models import ServiceStatus
 from dashboard.services import record_service
 
@@ -12,6 +12,10 @@ class Command(BaseCommand):
         parser.add_argument("--probe", action="store_true")
 
     def handle(self, *args, **options):
+        self.stdout.write('Chat mode: ' + chat_mode())
+        if chat_mode() == 'free':
+            self.stdout.write('Free course help enabled; no API requests are made.')
+            return
         key, model = chat_configuration()
         self.stdout.write("AI key configured: " + str(bool(key)))
         self.stdout.write("AI model: " + repr(model[:100]))

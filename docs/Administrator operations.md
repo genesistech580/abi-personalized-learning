@@ -59,3 +59,12 @@ tokens. Quota/billing failures require action on the provider account; changing 
 cannot add credit. Local terminal configuration is independent of the hosted server.
 Chat displays replies in place, prevents duplicate clicks while waiting, preserves
 unsent questions on failure, and stores a bounded conversation per course in the session.
+
+## Free course help
+Free mode is enabled by default. It retrieves matching excerpts from published lessons
+and offers a simple teaching outline for lecturers. It does not call OpenAI, require
+API credit, invent answers, expose draft lessons, or run a local language model.
+If no relevant content exists, it suggests course lessons or asks for lecturer materials.
+System status has an explicit mode selector. The existing API key is retained privately
+for a future switch back to OpenAI. Selecting OpenAI requires available provider credit;
+there is no automatic paid fallback when free mode cannot answer a question.

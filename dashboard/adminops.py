@@ -21,7 +21,7 @@ from accounts.models import User
 from assessments.models import DiagnosticAttempt, DiagnosticQuestion, PilotFeedback
 from courses.models import Course, Enrollment, Lesson, LessonCompletion, LessonVisit
 from .models import AuditEvent, ResearchConsent, ConsentEvent, ServiceStatus
-from .chat import chat_configuration, save_chat_configuration, request_reply, ChatError
+from .chat import chat_configuration, save_chat_configuration, request_reply, ChatError, chat_mode, save_chat_mode
 from .services import record_service
 
 def administrator(view):
@@ -83,6 +83,14 @@ def hub(request, section='students'):
     ai_form = AIConfigurationForm(initial={'model': chat_configuration()[1]})
     if section == 'system' and request.method == 'POST':
         action = request.POST.get('action')
+        if action == 'configure_chat_mode':
+            mode = request.POST.get('mode')
+            if mode not in {'free', 'openai'}:
+                raise PermissionDenied
+            save_chat_mode(mode)
+            AuditEvent.objects.create(actor=request.user, actor_label=request.user.username, action='configure', model_label='service.chat', object_id='mode', fields=[mode])
+            messages.success(request, 'Free course help enabled.' if mode == 'free' else 'OpenAI mode selected. API credit is required.')
+            return redirect('admin_hub', section='system')
         if action == 'configure_ai':
             ai_form = AIConfigurationForm(request.POST)
             if ai_form.is_valid():
@@ -95,6 +103,9 @@ def hub(request, section='students'):
                     messages.success(request, 'AI configuration saved. Use Test connection to verify it.')
                     return redirect('admin_hub', section='system')
         elif action == 'test_ai':
+            if chat_mode() == 'free':
+                messages.success(request, 'Free course help is enabled. No API key or credit is needed.')
+                return redirect('admin_hub', section='system')
             try:
                 request_reply([{'role': 'user', 'content': 'Reply with OK.'}], 'This is a connection check.', max_tokens=64)
             except ChatError as error:
@@ -232,6 +243,7 @@ def hub(request, section='students'):
             pass
         context['ai_form'] = ai_form
         context['ai_model'] = chat_configuration()[1]
+        context['chat_mode'] = chat_mode()
         context['service_history'] = ServiceStatus.objects.order_by('service')
         context['backup_stale'] = not backup.get('verified_at') or timezone.now() - datetime.fromisoformat(backup['verified_at']) > timedelta(hours=36)
         context['services'] = {'database_ms': round(1000 * (perf_counter() - started), 1), 'email': bool(settings.EMAIL_HOST and settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD), 'ai': bool(chat_configuration()[0]), 'backup': backup}

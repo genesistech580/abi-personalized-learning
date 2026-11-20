@@ -22,3 +22,5 @@ deployment/release.txt
 .backup-status*
 
 .ai-env*
+
+.chat-mode*
