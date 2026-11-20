@@ -201,6 +201,13 @@ class AdministratorOperationsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(ServiceStatus.objects.get(service="ai").successful)
 
+    def test_management_smoke_check_does_not_change_users(self):
+        before = list(User.objects.order_by("pk").values_list("pk", "last_login", "password"))
+        output = io.StringIO()
+        call_command("check_management", stdout=output)
+        self.assertIn("screens rendered successfully", output.getvalue())
+        self.assertEqual(before, list(User.objects.order_by("pk").values_list("pk", "last_login", "password")))
+
     def test_management_mutations_require_csrf_tokens(self):
         from django.test import Client
         client = Client(enforce_csrf_checks=True)

@@ -28,6 +28,7 @@ def write_status(data):
     temporary.write_text(json.dumps(data), encoding="utf-8")
     temporary.chmod(0o600)
     os.replace(temporary, settings.BASE_DIR / ".backup-status.json")
+    (settings.BASE_DIR / ".activity-version").touch()
 
 
 class Command(BaseCommand):

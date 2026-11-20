@@ -24,6 +24,7 @@ tar -xzf "$HOME/abi-release.tar.gz" -C .
 .venv/bin/python manage.py optimize_photos --settings=config.hosting
 .venv/bin/python manage.py collectstatic --noinput --settings=config.hosting
 .venv/bin/python manage.py backup_system --settings=config.hosting
+.venv/bin/python manage.py check_management --settings=config.hosting
 
 printf '%s\n' "$stamp" > deployment/release.txt
 touch deployment/reload.trigger
