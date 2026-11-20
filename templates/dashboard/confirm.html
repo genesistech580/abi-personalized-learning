@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<section class="panel form-panel"><h1>{{ title }}</h1><p>{{ detail }}</p><p>Learning history will be retained.</p><form method="post">{% csrf_token %}<button type="submit">Confirm</button> <a href="{% url 'dashboard' %}">Cancel</a></form></section>{% endblock %}

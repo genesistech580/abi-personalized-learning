@@ -8,3 +8,5 @@ class DashboardConfig(AppConfig):
     def ready(self):
         from .activity import connect_activity_signals
         connect_activity_signals()
+        from .auditing import connect_audit_signals
+        connect_audit_signals()

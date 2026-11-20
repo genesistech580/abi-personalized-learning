@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block content %}
+<section class="panel form-panel"><h1>Research participation</h1>
+<p>This UEW project evaluates whether personalized learning supports Level 200 ICT students. Participation is voluntary and does not affect access to lessons or academic decisions.</p>
+<p>If you agree, quiz results, lesson activity and optional usability ratings recorded from your consent date may be used in the study. Authorized administrators can review these records. Research exports replace your identity with a participant code and exclude names, emails and written answers.</p>
+<p>You may withdraw here at any time. Withdrawal excludes your data from subsequent research reports. Course records remain available for learning and administration; reports already exported cannot be recalled automatically. Contact the project administrator through your lecturer for questions about data handling or the approved study arrangements.</p>
+<p class="muted">Information version: 2026-11-19. Participation should begin only after the required institutional approval.</p>
+{% if consent.active %}<p>Consented: {{ consent.consented_at|date:"M j, Y H:i T" }}</p><form method="post">{% csrf_token %}<input type="hidden" name="action" value="withdraw"><button type="submit">Withdraw participation</button></form>
+{% else %}{% if consent.withdrawn_at %}<p>Withdrawn: {{ consent.withdrawn_at|date:"M j, Y H:i T" }}</p>{% endif %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="consent"><label><input type="checkbox" name="agree" value="yes" required> I have read this information and voluntarily agree to participate.</label><p><button type="submit">Give consent</button></p></form>{% endif %}
+{% if consent_history %}<h2>Participation history</h2><ul>{% for event in consent_history %}<li>{{ event.get_action_display }} · {{ event.created_at|date:"M j, Y H:i T" }} · Information {{ event.information_version }}</li>{% endfor %}</ul>{% endif %}
+<p><a href="{% url 'dashboard' %}">Dashboard</a></p></section>{% endblock %}

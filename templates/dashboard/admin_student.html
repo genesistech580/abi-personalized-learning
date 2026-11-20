@@ -1,0 +1,4 @@
+{% extends "dashboard/admin_shell.html" %}
+{% block admin_content %}<h2>{{ learner.username }}</h2>
+<ul class="dashboard-roster">{% for record in records %}<li><div><strong>{{ record.course }}</strong><div>{% if record.withdrawn_at %}Withdrawn{% else %}Enrolled{% endif %}{% if record.course.archived_at %} · Course archived{% endif %}</div></div><a href="{% url 'student_detail' record.course_id learner.pk %}">View progress</a></li>{% empty %}<li>No enrollments.</li>{% endfor %}</ul>
+{% endblock %}

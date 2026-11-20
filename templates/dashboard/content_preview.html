@@ -6,6 +6,6 @@
 {% if kind == "lesson" %}{{ item.content|linebreaks }}
 {% else %}<p>{{ item.prompt }}</p><ol><li>{{ item.option_a }}</li><li>{{ item.option_b }}</li><li>{{ item.option_c }}</li></ol><p>Answer: {{ item.correct }}</p>{{ item.explanation|linebreaks }}{% endif %}
 <a class="button" href="{% url 'edit_content' kind item.pk %}">Edit</a>
-<a href="{% url 'learning_path' item.course_id %}">Back to course</a>
+{% if user.role == 'administrator' %}<a href="{% url 'admin_hub' 'content' %}?course={{ item.course_id }}">Back to content</a>{% else %}<a href="{% url 'learning_path' item.course_id %}">Back to course</a>{% endif %}
 </article>
 {% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block main_class %} dashboard-page{% endblock %}
+{% block header_logout %}{% endblock %}
+{% block content %}
+{% include "dashboard/menu_script.html" %}
+<div class="dashboard-layout">
+<button class="dashboard-menu-toggle" type="button" aria-controls="dashboard-navigation" aria-expanded="false">Menu</button>
+<nav id="dashboard-navigation" class="dashboard-sidebar" aria-label="Administrator navigation">{% include "dashboard/admin_nav.html" %}</nav>
+<div class="dashboard-content"><h1>{{ title }}</h1>{% block admin_content %}{% endblock %}</div>
+</div>
+{% endblock %}

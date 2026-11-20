@@ -24,7 +24,7 @@ class LessonForm(forms.ModelForm):
 def learning_path(request, pk):
     user = request.user
     if user.role == User.Role.STUDENT:
-        courses = Course.objects.filter(enrollments__student=user)
+        courses = Course.objects.filter(enrollments__student=user, enrollments__withdrawn_at__isnull=True, archived_at__isnull=True)
     elif user.role == User.Role.LECTURER:
         courses = user.teaching_courses.all()
     else:
@@ -66,7 +66,7 @@ def add_lesson(request, pk):
 def read_lesson(request, pk):
     user = request.user
     if user.role == User.Role.STUDENT:
-        lessons = Lesson.objects.filter(course__enrollments__student=user, status="published")
+        lessons = Lesson.objects.filter(course__enrollments__student=user, course__enrollments__withdrawn_at__isnull=True, course__archived_at__isnull=True, status="published")
     elif user.role == User.Role.LECTURER:
         lessons = Lesson.objects.filter(course__lecturer=user)
     else:
@@ -117,7 +117,7 @@ def manage_course(request, pk, delete=False):
     if delete:
         if request.method == "POST":
             course.delete()
-            messages.success(request, "Course deleted.")
+            messages.success(request, "Course archived.")
             return redirect("dashboard")
         return render(request, "courses/delete.html", {"course": course})
 
@@ -135,8 +135,11 @@ def enroll_course(request, pk):
     if request.user.role != User.Role.STUDENT:
         raise PermissionDenied
 
-    course = get_object_or_404(Course, pk=pk)
+    course = get_object_or_404(Course, pk=pk, archived_at__isnull=True)
     _, created = Enrollment.objects.get_or_create(course=course, student=request.user)
+    if not created and _.withdrawn_at:
+        messages.error(request, "Contact the administrator to restore your enrollment.")
+        return redirect("dashboard")
     if created:
         messages.success(request, "You’re enrolled.")
     if course.diagnostic_questions.filter(stage="diagnostic").exists() and not course.diagnostic_attempts.filter(student=request.user).exists():

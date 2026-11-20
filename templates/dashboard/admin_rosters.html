@@ -2,7 +2,7 @@
     <h2 id="students">Students</h2>
     <ul class="dashboard-roster">
         {% for student in students %}
-        <li><span>{{ student.get_full_name|default:student.username }}{% if student.get_full_name %} <small>({{ student.username }})</small>{% endif %}</span><strong>{{ student.course_count }} course{{ student.course_count|pluralize }}</strong> <div class="course-actions"><a href="{% url 'edit_account' student.pk %}">Edit</a><a href="{% url 'delete_account' student.pk %}">Delete</a></div></li>
+        <li><span>{{ student.get_full_name|default:student.username }}{% if student.get_full_name %} <small>({{ student.username }})</small>{% endif %}</span><strong>{{ student.course_count }} course{{ student.course_count|pluralize }}</strong> <div class="course-actions"><a href="{% url 'edit_account' student.pk %}">Edit</a><a href="{% url 'delete_account' student.pk %}">Deactivate</a></div></li>
         {% empty %}<li>No students yet.</li>{% endfor %}
     </ul>
 </section>
@@ -10,7 +10,7 @@
     <h2 id="lecturers">Lecturers</h2>
     <ul class="dashboard-roster">
         {% for lecturer in lecturers %}
-        <li><span>{{ lecturer.get_full_name|default:lecturer.username }}{% if lecturer.get_full_name %} <small>({{ lecturer.username }})</small>{% endif %}</span><strong>{{ lecturer.student_count }} student{{ lecturer.student_count|pluralize }}</strong> <div class="course-actions"><a href="{% url 'edit_account' lecturer.pk %}">Edit</a><a href="{% url 'delete_account' lecturer.pk %}">Delete</a></div></li>
+        <li><span>{{ lecturer.get_full_name|default:lecturer.username }}{% if lecturer.get_full_name %} <small>({{ lecturer.username }})</small>{% endif %}</span><strong>{{ lecturer.student_count }} student{{ lecturer.student_count|pluralize }}</strong> <div class="course-actions"><a href="{% url 'edit_account' lecturer.pk %}">Edit</a><a href="{% url 'delete_account' lecturer.pk %}">Deactivate</a></div></li>
         {% empty %}<li>No lecturers yet.</li>{% endfor %}
     </ul>
 </section>

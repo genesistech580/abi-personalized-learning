@@ -80,7 +80,12 @@ class DiagnosticAttempt(models.Model):
 
 
 class PilotFeedback(models.Model):
-    student = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    course = models.ForeignKey("courses.Course", on_delete=models.PROTECT, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=("student", "course"), name="unique_course_pilot_feedback")]
     ease = models.PositiveSmallIntegerField()
     clarity = models.PositiveSmallIntegerField()
     usefulness = models.PositiveSmallIntegerField()

@@ -9,6 +9,11 @@ class LearningUserManager(UserManager):
 
 
 class User(AbstractUser):
+    def delete(self, *args, **kwargs):
+        self.is_active = False
+        self.save(update_fields=["is_active"])
+
+
     class Role(models.TextChoices):
         STUDENT = "student", "Student"
         LECTURER = "lecturer", "Lecturer"

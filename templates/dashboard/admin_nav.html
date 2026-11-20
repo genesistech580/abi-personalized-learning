@@ -1,0 +1,13 @@
+<span class="dashboard-brand">ABI <strong>TECH</strong></span>
+<a href="{% url 'dashboard' %}">Overview</a>
+<a href="{% url 'admin_hub' 'students' %}">Students</a>
+<a href="{% url 'admin_hub' 'lecturers' %}">Lecturers</a>
+<a href="{% url 'admin_hub' 'courses' %}">Courses</a>
+<a href="{% url 'admin_hub' 'enrollments' %}">Enrollments</a>
+<a href="{% url 'admin_hub' 'content' %}">Content</a>
+<a href="{% url 'admin_evaluation' %}">Evaluation</a>
+<a href="{% url 'admin_hub' 'consent' %}">Research participation</a>
+<a href="{% url 'admin_hub' 'audit' %}">Audit history</a>
+<a href="{% url 'admin_hub' 'system' %}">System status</a>
+<a href="{% url 'profile' %}">Profile</a>
+{% include "dashboard/sidebar_signout.html" %}

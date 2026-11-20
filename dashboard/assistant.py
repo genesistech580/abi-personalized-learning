@@ -16,6 +16,7 @@ from courses.models import Course, LessonCompletion
 from recommendations.services import diagnostic_reviews
 
 
+from .services import record_service
 from .chat import course_reply
 
 
@@ -29,7 +30,7 @@ class ChatForm(forms.Form):
 def learning_assistant(request):
     user = request.user
     if user.role == User.Role.STUDENT:
-        courses = Course.objects.filter(enrollments__student=user)
+        courses = Course.objects.filter(enrollments__student=user, enrollments__withdrawn_at__isnull=True, archived_at__isnull=True)
     elif user.role == User.Role.LECTURER:
         courses = user.teaching_courses.all()
     else:
@@ -100,6 +101,7 @@ def learning_assistant(request):
                     reply = ""
                 except ValueError:
                     reply = ""
+                record_service("ai", bool(reply), "AI provider returned a reply." if reply else "AI request failed; check provider access, quota or connectivity.")
                 if reply:
                     request.session[chat_key] = messages + [{"role": "assistant", "content": reply}]
                     return redirect(f"{reverse('learning_assistant')}?course={course.pk}#course-chat")

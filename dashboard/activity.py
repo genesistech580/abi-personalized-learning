@@ -3,7 +3,7 @@ from django.db import transaction
 from django.db.models.signals import post_save, post_delete, m2m_changed
 
 
-TRACKED_APPS = {"accounts", "courses", "assessments"}
+TRACKED_APPS = {"accounts", "courses", "assessments", "dashboard"}
 
 
 def record_activity(sender, **kwargs):

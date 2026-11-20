@@ -7,17 +7,7 @@
 <div class="dashboard-layout">
     <button class="dashboard-menu-toggle" type="button" aria-controls="dashboard-navigation" aria-expanded="false">Menu</button>
     <nav id="dashboard-navigation" class="dashboard-sidebar" aria-label="Administrator navigation">
-        <span class="dashboard-brand">ABI <strong>TECH</strong></span>
-        <a href="{% url 'dashboard' %}"{% if section == 'overview' %} aria-current="page"{% endif %}>Overview</a>
-        <a href="?section=courses"{% if section == 'courses' %} aria-current="page"{% endif %}>Courses</a>
-        <a href="?section=people#students"{% if section == 'people' %} aria-current="page"{% endif %}>Students and lecturers</a>
-        <a href="?section=enrollments"{% if section == 'enrollments' %} aria-current="page"{% endif %}>Enrollments</a>
-        <a href="?section=pilot"{% if section == 'pilot' %} aria-current="page"{% endif %}>Pilot activity</a>
-        <a href="{% url 'outcomes' %}">Pilot outcomes</a>
-        <a href="{% url 'pilot_feedback' %}">Pilot feedback</a>
-        <a href="{% url 'pilot_evaluation' %}">Pilot evaluation</a>
-        <a href="{% url 'profile' %}">Profile</a>
-        {% include "dashboard/sidebar_signout.html" %}
+        {% include "dashboard/admin_nav.html" %}
     </nav>
     <div class="dashboard-content">
         {% if section == "overview" %}
@@ -49,7 +39,7 @@
                 </div>
                 <div class="course-actions">
                     <a class="button button-secondary" href="{% url 'edit_course' course.pk %}">Edit course</a>
-                    <a class="button button-secondary" href="{% url 'delete_course' course.pk %}">Delete course</a>
+                    <a class="button button-secondary" href="{% url 'delete_course' course.pk %}">Archive course</a>
                 </div>
             </li>
             {% empty %}<li>No courses yet.</li>{% endfor %}

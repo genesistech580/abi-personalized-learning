@@ -9,7 +9,7 @@ def for_student(student):
     now = timezone.now()
     submissions = Submission.objects.filter(assessment=OuterRef("pk"), student=student)
     assessments = (
-        Assessment.objects.filter(course__enrollments__student=student)
+        Assessment.objects.filter(course__enrollments__student=student, course__enrollments__withdrawn_at__isnull=True, course__archived_at__isnull=True)
         .select_related("course")
         .annotate(has_submission=Exists(submissions))
         .filter(has_submission=False)
@@ -25,7 +25,7 @@ def for_student(student):
             Submission.objects.filter(
                 student=student,
                 score__lt=70,
-                assessment__course__enrollments__student=student,
+                assessment__course__enrollments__student=student, assessment__course__enrollments__withdrawn_at__isnull=True, assessment__course__archived_at__isnull=True,
             )
             .select_related("assessment__course")
             .order_by("score", "-updated_at", "pk")
@@ -38,7 +38,7 @@ def for_student(student):
 
 def diagnostic_reviews(student, course=None):
     attempts = DiagnosticAttempt.objects.filter(
-        student=student, course__enrollments__student=student
+        student=student, course__enrollments__student=student, course__enrollments__withdrawn_at__isnull=True, course__archived_at__isnull=True
     )
     if course is not None:
         attempts = attempts.filter(course=course)

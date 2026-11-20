@@ -1,9 +1,11 @@
+from dashboard import adminops
 from dashboard.releases import system_version
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
+from accounts.reset import MonitoredPasswordResetForm
 from accounts.profile import profile, profile_photo
 from accounts.management_views import manage_account
 from accounts.views import AccountLoginView, register
@@ -20,6 +22,13 @@ from dashboard.views import create_record, index
 
 
 urlpatterns = [
+    path("management/<str:section>/", adminops.hub, name="admin_hub"),
+    path("management/student/<int:pk>/", adminops.student, name="admin_student"),
+    path("management/enrollment/<int:pk>/", adminops.enrollment, name="admin_enrollment"),
+    path("management/course/<int:pk>/state/", adminops.course_state, name="admin_course_state"),
+    path("management/student/<int:pk>/group/", adminops.cohort, name="admin_cohort"),
+    path("evaluation/", adminops.evaluation, name="admin_evaluation"),
+    path("research/consent/", adminops.consent, name="research_consent"),
     path("system/version/", system_version, name="system_version"),
     path("teaching/students/", teaching, name="teaching_students"),
     path("teaching/courses/<int:pk>/", teaching, name="course_report"),
@@ -30,7 +39,7 @@ urlpatterns = [
     path("accounts/<int:pk>/edit/", manage_account, name="edit_account"),
     path("accounts/<int:pk>/delete/", manage_account, {"delete": True}, name="delete_account"),
     path("assistant/", learning_assistant, name="learning_assistant"),
-    path("pilot-evaluation/", pilot_evaluation, name="pilot_evaluation"),
+    path("pilot-evaluation/", adminops.evaluation, name="pilot_evaluation"),
     path("pilot-feedback/", pilot_feedback, name="pilot_feedback"),
     path("outcomes/", outcomes, name="outcomes"),
     path("courses/<int:pk>/diagnostic/", diagnostic, name="diagnostic"),
@@ -46,7 +55,7 @@ urlpatterns = [
     path("accounts/profile/photo/", profile_photo, name="profile_photo"),
     path("accounts/register/", register, name="register"),
     path("accounts/login/", AccountLoginView.as_view(), name="login"),
-    path("accounts/password-reset/", auth_views.PasswordResetView.as_view(), name="password_reset"),
+    path("accounts/password-reset/", auth_views.PasswordResetView.as_view(form_class=MonitoredPasswordResetForm), name="password_reset"),
     path("accounts/password-reset/sent/", auth_views.PasswordResetDoneView.as_view(extra_context={"email_delivery_enabled": bool(settings.EMAIL_HOST)}), name="password_reset_done"),
     path("accounts/reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("accounts/reset/complete/", auth_views.PasswordResetCompleteView.as_view(), name="password_reset_complete"),

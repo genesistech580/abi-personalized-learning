@@ -1,4 +1,5 @@
 from django import forms
+from django.db import transaction
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -22,19 +23,22 @@ def submit(request, pk):
         raise PermissionDenied
 
     assessment = get_object_or_404(
-        Assessment, pk=pk, course__enrollments__student=request.user
+        Assessment, pk=pk, course__enrollments__student=request.user, course__enrollments__withdrawn_at__isnull=True, course__archived_at__isnull=True
     )
     submission = Submission.objects.filter(assessment=assessment, student=request.user).first()
     form = SubmissionForm(request.POST if request.method == "POST" else None, instance=submission)
     if request.method == "POST" and form.is_valid():
-        saved, created = Submission.objects.get_or_create(
-            assessment=assessment, student=request.user, defaults=form.cleaned_data
-        )
-        if not created and not Submission.objects.filter(pk=saved.pk, score__isnull=True).update(
-            answer=form.cleaned_data["answer"], updated_at=timezone.now()
-        ):
-            messages.error(request, "This submission has been graded.")
-            return redirect("submit_assessment", pk=assessment.pk)
+        with transaction.atomic():
+            saved, created = Submission.objects.get_or_create(
+                assessment=assessment, student=request.user, defaults=form.cleaned_data
+            )
+            saved = Submission.objects.select_for_update().get(pk=saved.pk)
+            if not created:
+                if saved.score is not None:
+                    messages.error(request, "This submission has been graded.")
+                    return redirect("submit_assessment", pk=assessment.pk)
+                saved.answer = form.cleaned_data["answer"]
+                saved.save(update_fields=["answer", "updated_at"])
         messages.success(request, "Assessment submitted.")
         return redirect("dashboard")
 
@@ -77,12 +81,14 @@ def grade(request, pk):
         "submitted_version": submission.updated_at.isoformat(),
     })
     if request.method == "POST" and form.is_valid():
-        saved = Submission.objects.filter(
-            pk=submission.pk, updated_at=form.cleaned_data["submitted_version"]
-        ).update(score=form.cleaned_data["score"], feedback=form.cleaned_data["feedback"])
-        if saved:
-            messages.success(request, "Grade saved.")
-            return redirect("review_assessment", pk=submission.assessment_id)
+        with transaction.atomic():
+            saved = Submission.objects.select_for_update().get(pk=submission.pk)
+            if saved.updated_at == form.cleaned_data["submitted_version"]:
+                saved.score = form.cleaned_data["score"]
+                saved.feedback = form.cleaned_data["feedback"]
+                saved.save(update_fields=["score", "feedback", "updated_at"])
+                messages.success(request, "Grade saved.")
+                return redirect("review_assessment", pk=submission.assessment_id)
         messages.error(request, "The answer changed. Review it again.")
         return redirect("grade_submission", pk=submission.pk)
 

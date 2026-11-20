@@ -20,8 +20,8 @@
         <button type="submit">Save feedback</button>
     </form>
     {% else %}
-    <p>Take the Java pilot quiz to give feedback.</p>
-    <a href="{% url 'dashboard' %}?section=catalog">Browse courses</a>
+    <p>Give research consent and take a course quiz to provide optional feedback.</p>
+    <a href="{% url 'research_consent' %}">Research participation</a>
     {% endif %}
     <p><a href="{% url 'dashboard' %}">Back to dashboard</a></p>
 </section>

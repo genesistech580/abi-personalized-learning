@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <article class="panel form-panel">
-    <h1>Delete course</h1>
+    <h1>Archive course</h1>
     <p><strong>{{ course }}</strong></p>
-    <p>This permanently removes its lessons, progress, enrollments, assessments, and submissions.</p>
+    <p>This closes student access. Lessons, enrollments and results will be retained.</p>
     <form method="post">
         {% csrf_token %}
-        <button class="danger-button" type="submit">Delete course</button>
+        <button class="danger-button" type="submit">Archive course</button>
         <a href="{% url 'dashboard' %}">Cancel</a>
     </form>
 </article>

@@ -169,3 +169,15 @@ header .topbar {
     .header-brand-copy strong { font-size: .9rem; }
     .header-brand-copy > span { font-size: .68rem; max-width: 24ch; }
 }
+
+/* Administrator filters and reports */
+.admin-filters {display:flex; flex-wrap:wrap; gap:12px; align-items:end; margin:0 0 24px; padding:18px; border:1px solid #dbe2ec; border-radius:10px; background:#fff;}
+.admin-filters p {margin:0; flex:1 1 160px; min-width:0;}
+.admin-filters label {display:block; margin-bottom:6px;}
+.admin-filters input,.admin-filters select {width:100%; min-width:0; box-sizing:border-box;}
+.admin-filters .errorlist {color:#a6192e; flex-basis:100%;}
+.report-table-wrap {max-width:100%; overflow-x:auto; background:#fff; border:1px solid #dbe2ec; border-radius:10px;}
+.report-table-wrap table {width:100%; border-collapse:collapse;}
+.report-table-wrap th,.report-table-wrap td {padding:12px; text-align:left; border-bottom:1px solid #e5e9ef;}
+.dashboard-roster strong,.dashboard-roster .muted {overflow-wrap:anywhere;}
+@media(max-width:600px){.admin-filters {padding:12px;}.admin-filters p {flex-basis:100%;}.course-actions {flex-wrap:wrap;}}

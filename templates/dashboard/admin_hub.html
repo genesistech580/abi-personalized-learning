@@ -1,0 +1,48 @@
+{% extends "dashboard/admin_shell.html" %}
+
+{% block title %}{{ title }} | ABI TECH{% endblock %}
+
+{% block admin_content %}
+
+{% if section != 'system' %}
+
+<form method="get" class="admin-filters">{{ form.as_p }}<button type="submit">Apply filters</button><a href="{% url 'admin_hub' section %}">Clear</a></form>
+
+<div class="actions">
+
+{% if section == 'lecturers' %}<a class="button" href="{% url 'add_lecturer' %}">Add lecturer</a>{% endif %}
+
+{% if section == 'courses' %}<a class="button" href="{% url 'add_course' %}">Add course</a>{% endif %}
+
+{% if section == 'enrollments' %}<a class="button" href="{% url 'add_enrollment' %}">Enroll student</a>{% endif %}
+
+</div>
+
+<ul class="dashboard-roster">{% for row in page_obj %}<li><div><strong>{{ row.label }}</strong><div class="muted">{{ row.detail }}</div>{% if row.status %}<span>{{ row.status }}</span>{% endif %}</div><div class="course-actions">{% for label, url in row.links %}<a href="{{ url }}">{{ label }}</a>{% endfor %}</div></li>{% empty %}<li>No matching records.</li>{% endfor %}</ul>
+
+{% include "dashboard/pagination.html" %}
+
+{% else %}
+
+<section class="panel"><h2>Services</h2><ul class="dashboard-roster">
+
+<li>Database <strong>Responding · {{ services.database_ms }} ms</strong></li>
+
+<li>Email <strong>{% if services.email %}Configured{% else %}Not configured{% endif %}</strong></li>
+
+<li>AI chat <strong>{% if services.ai %}Configured{% else %}Not configured{% endif %}</strong></li>
+
+</ul><p class="muted">Configuration does not confirm delivery or available quota. Recent outcomes are recorded when these services are used.</p>{% for service in service_history %}<p><strong>{{ service.service|upper }}</strong> · {% if service.successful %}Last request succeeded{% else %}Last request failed{% endif %} · {{ service.checked_at|date:"M j, Y H:i T" }}<br>{{ service.summary }}</p>{% endfor %}</section>
+
+<section class="panel"><h2>Backups</h2>{% if backup_stale %}<p role="alert">No backup has been verified in the last 36 hours.</p>{% endif %}{% if services.backup.last_attempt_ok == False %}<p role="alert">The latest backup attempt failed. Check the backup workflow.</p>{% endif %}
+
+{% if services.backup.verified_at %}<p>Last restore verification: {{ services.backup.verified_at }}</p><p>Database: {{ services.backup.database_check }} · Media files checked: {{ services.backup.media_files }}</p>{% else %}<p>No verified backup has been recorded.</p>{% endif %}
+
+<p>Scheduled daily at 02:30 UTC through GitHub Actions. The latest 14 scheduled backups are retained.</p>
+
+</section>
+
+{% endif %}
+
+{% endblock %}
+

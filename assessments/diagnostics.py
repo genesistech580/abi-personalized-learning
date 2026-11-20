@@ -29,7 +29,7 @@ def diagnostic(request, pk):
     student = request.user
     if student.role != User.Role.STUDENT:
         raise PermissionDenied
-    course = get_object_or_404(Course, pk=pk, enrollments__student=student)
+    course = get_object_or_404(Course, pk=pk, enrollments__student=student, enrollments__withdrawn_at__isnull=True, archived_at__isnull=True)
     stage = request.GET.get("stage", "diagnostic")
     if stage not in {"diagnostic", "followup"}:
         from django.http import Http404

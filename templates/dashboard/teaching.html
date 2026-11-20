@@ -8,7 +8,7 @@
 </ul>
 {% elif not learner %}
 <h1>{{ course.title }}</h1>
-<p><a href="{% url 'publish_check' course.pk %}">Quiz review</a></p>
+{% if not is_admin %}<p><a href="{% url 'publish_check' course.pk %}">Quiz review</a></p>{% endif %}
 <p>{{ roster|length }} enrolled · {{ lesson_count }} published lessons</p>
 <ul class="dashboard-roster">
 {% for row in roster %}
@@ -19,16 +19,16 @@
 </ul>
 {% else %}
 <h1>{{ learner.get_full_name|default:learner.username }}</h1>
-<p>{{ course.title }}</p>
+<p>{{ course.title }}{% if enrollment.withdrawn_at %} · Enrollment withdrawn{% endif %}{% if course.archived_at %} · Course archived{% endif %}</p>
 <h2>Lessons</h2>
-<ul>{% for completion in completions %}<li>{{ completion.lesson.title }} · {% if completion.completed_at %}{{ completion.completed_at|date:"M j, Y H:i" }}{% else %}Complete{% endif %}</li>{% empty %}<li>No completed lessons.</li>{% endfor %}</ul>
+<ul>{% for lesson, completion in lesson_states %}<li>{{ lesson.title }} · {{ lesson.get_status_display }} · {% if completion %}Completed{% if completion.completed_at %} {{ completion.completed_at|date:"M j, Y H:i" }}{% endif %}{% else %}Not completed{% endif %}</li>{% empty %}<li>No lessons.</li>{% endfor %}</ul>
 <h2>Quiz attempts</h2>
 <ul>{% for attempt in attempts %}<li>{{ attempt.stage }} · {{ attempt.correct_count }}/{{ attempt.question_count }} · {{ attempt.submitted_at|date:"M j, Y H:i" }}</li>{% empty %}<li>No attempts.</li>{% endfor %}</ul>
 <h2>Review topics</h2>
 <ul>{% for topic in weak_topics %}<li>{{ topic }}</li>{% empty %}<li>No review topics recorded.</li>{% endfor %}</ul>
-<h2>Send feedback</h2>
+{% if form %}<h2>Send feedback</h2>
 <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Send feedback</button></form>
-<h2>Feedback</h2>
+{% endif %}<h2>Feedback</h2>
 {% for feedback in comments %}<p><strong>{{ feedback.topic }}</strong> · {{ feedback.comment }}</p>{% endfor %}
 {% endif %}
 {% endblock %}

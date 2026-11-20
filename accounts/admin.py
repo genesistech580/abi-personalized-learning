@@ -6,6 +6,9 @@ from .models import User
 
 @admin.register(User)
 class LearningUserAdmin(UserAdmin):
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     fieldsets = (*UserAdmin.fieldsets, ("Learning system", {"fields": ("role",)}))
     add_fieldsets = (
         *UserAdmin.add_fieldsets,

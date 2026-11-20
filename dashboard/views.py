@@ -29,10 +29,10 @@ def index(request):
         if section not in {"overview", "courses", "catalog", "assessments", "recommended", "performance"}:
             return redirect("dashboard")
         context["section"] = section
-        context["lecturer_feedback"] = LearningFeedback.objects.filter(student=user, course__enrollments__student=user).select_related("course", "lesson").order_by("-pk")[:20]
+        context["lecturer_feedback"] = LearningFeedback.objects.filter(student=user, course__enrollments__student=user, course__enrollments__withdrawn_at__isnull=True, course__archived_at__isnull=True).select_related("course", "lesson").order_by("-pk")[:20]
         if section == "performance":
             attempts = DiagnosticAttempt.objects.filter(
-                student=user, course__enrollments__student=user
+                student=user, course__enrollments__student=user, course__enrollments__withdrawn_at__isnull=True, course__archived_at__isnull=True
             ).select_related("course").order_by("-pk")
             by_course = {}
             for attempt in attempts:
@@ -64,22 +64,22 @@ def index(request):
             context["diagnostic_reviews"] = diagnostic_reviews(user)
         if section == "recommended":
             context["diagnostic_courses"] = Course.objects.filter(
-                enrollments__student=user, diagnostic_questions__isnull=False
+                enrollments__student=user, enrollments__withdrawn_at__isnull=True, archived_at__isnull=True, diagnostic_questions__isnull=False
             ).distinct().order_by("code")
         context["quiz_courses"] = Course.objects.filter(
-            enrollments__student=user, diagnostic_questions__isnull=False
+            enrollments__student=user, enrollments__withdrawn_at__isnull=True, archived_at__isnull=True, diagnostic_questions__isnull=False
         ).distinct().order_by("code")
         context["course_heading"] = "My courses"
         context["recommendations"] = for_student(user)
         enrollments = Enrollment.objects.filter(course=OuterRef("pk"), student=user)
         context["course_catalog"] = (
-            Course.objects.select_related("lecturer")
+            Course.objects.filter(archived_at__isnull=True).select_related("lecturer")
             .annotate(enrolled=Exists(enrollments), lesson_count=Count("lessons"))
             .order_by("code")
         )
         submissions = Submission.objects.filter(assessment=OuterRef("pk"), student=user)
         context["student_assessments"] = (
-            Assessment.objects.filter(course__enrollments__student=user)
+            Assessment.objects.filter(course__enrollments__student=user, course__enrollments__withdrawn_at__isnull=True, course__archived_at__isnull=True)
             .select_related("course")
             .annotate(
                 submission_id=Subquery(submissions.values("pk")[:1]),
@@ -89,7 +89,7 @@ def index(request):
         )
         completions = LessonCompletion.objects.filter(lesson=OuterRef("pk"), student=user)
         lessons = Lesson.objects.filter(status="published").annotate(completed=Exists(completions))
-        courses = Course.objects.filter(enrollments__student=user).prefetch_related(
+        courses = Course.objects.filter(enrollments__student=user, enrollments__withdrawn_at__isnull=True, archived_at__isnull=True).prefetch_related(
             Prefetch("lessons", queryset=lessons, to_attr="learning_lessons")
         )
     elif user.role == User.Role.LECTURER:
@@ -138,6 +138,12 @@ def index(request):
         return render(request, "dashboard/lecturer.html", context)
     else:
         section = request.GET.get("section", "overview")
+        from django.urls import reverse
+        destinations = {"people": "students", "courses": "courses", "enrollments": "enrollments"}
+        if section in destinations:
+            return redirect(reverse("admin_hub", args=[destinations[section]]))
+        if section == "pilot":
+            return redirect("admin_evaluation")
         if section not in {"overview", "courses", "people", "enrollments", "pilot"}:
             return redirect("dashboard")
         context["section"] = section

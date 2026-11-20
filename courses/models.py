@@ -1,8 +1,16 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class Course(models.Model):
+    archived_at = models.DateTimeField(null=True, blank=True)
+
+    def delete(self, *args, **kwargs):
+        self.archived_at = timezone.now()
+        self.save(update_fields=["archived_at"])
+
+
     quiz_approval = models.CharField(max_length=64, blank=True)
     code = models.CharField(max_length=20, unique=True)
     title = models.CharField(max_length=200)
@@ -18,6 +26,13 @@ class Course(models.Model):
 
 
 class Enrollment(models.Model):
+    withdrawn_at = models.DateTimeField(null=True, blank=True)
+
+    def delete(self, *args, **kwargs):
+        self.withdrawn_at = timezone.now()
+        self.save(update_fields=["withdrawn_at"])
+
+
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="enrollments")
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,

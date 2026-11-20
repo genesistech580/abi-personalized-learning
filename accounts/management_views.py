@@ -31,7 +31,7 @@ def manage_account(request, pk, delete=False):
             except ProtectedError:
                 messages.error(request, "Reassign this lecturer’s courses before deleting the account.")
             else:
-                messages.success(request, "Account deleted.")
+                messages.success(request, "Account deactivated.")
                 return redirect(reverse("dashboard") + "?section=people")
         return render(request, "accounts/delete.html", {"account": account})
     form = AccountEditForm(request.POST if request.method == "POST" else None, request.FILES, instance=account)

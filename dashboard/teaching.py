@@ -28,10 +28,13 @@ class ApprovalForm(forms.Form):
 @login_required
 @require_http_methods(["GET", "POST"])
 def teaching(request, pk=None, student_id=None):
-    if request.user.role != User.Role.LECTURER:
+    if request.user.role not in {User.Role.LECTURER, User.Role.ADMINISTRATOR}:
         raise PermissionDenied
-    courses = request.user.teaching_courses.order_by("code")
-    context = {"courses": courses}
+    is_admin = request.user.role == User.Role.ADMINISTRATOR
+    if is_admin and request.method != "GET":
+        raise PermissionDenied
+    courses = Course.objects.order_by("code") if is_admin else request.user.teaching_courses.order_by("code")
+    context = {"courses": courses, "is_admin": is_admin}
     if pk is None:
         return render(request, "dashboard/teaching.html", context)
     course = get_object_or_404(courses, pk=pk)
@@ -60,6 +63,8 @@ def teaching(request, pk=None, student_id=None):
         attempts = list(course.diagnostic_attempts.filter(student=student).order_by("-pk"))
         context.update(
             learner=student, attempts=attempts,
+            enrollment=enrollment,
+            lesson_states=[(lesson, LessonCompletion.objects.filter(student=student, lesson=lesson).first()) for lesson in course.lessons.all()],
             completions=LessonCompletion.objects.filter(student=student, lesson__course=course).select_related("lesson"),
             comments=LearningFeedback.objects.filter(student=student, course=course).select_related("lesson").order_by("-pk"),
             weak_topics=[
@@ -77,21 +82,22 @@ def teaching(request, pk=None, student_id=None):
             feedback.save()
             messages.success(request, "Feedback sent.")
             return redirect("student_detail", pk=course.pk, student_id=student.pk)
-        context["form"] = form
+        context["form"] = None if is_admin else form
     return render(request, "dashboard/teaching.html", context)
 
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def edit_content(request, kind, pk):
-    if request.user.role != User.Role.LECTURER:
+    if request.user.role not in {User.Role.LECTURER, User.Role.ADMINISTRATOR}:
         raise PermissionDenied
+    scope = {} if request.user.role == User.Role.ADMINISTRATOR else {"course__lecturer": request.user}
     if kind == "lesson":
-        item = get_object_or_404(Lesson, pk=pk, course__lecturer=request.user)
+        item = get_object_or_404(Lesson, pk=pk, **scope)
         form_class = LessonForm
     elif kind == "question":
         from assessments.models import DiagnosticQuestion
-        item = get_object_or_404(DiagnosticQuestion, pk=pk, course__lecturer=request.user)
+        item = get_object_or_404(DiagnosticQuestion, pk=pk, **scope)
         form_class = QuestionForm
     else:
         raise PermissionDenied
@@ -107,13 +113,14 @@ def edit_content(request, kind, pk):
 
 @login_required
 def content_preview(request, kind, pk):
-    if request.user.role != User.Role.LECTURER:
+    if request.user.role not in {User.Role.LECTURER, User.Role.ADMINISTRATOR}:
         raise PermissionDenied
+    scope = {} if request.user.role == User.Role.ADMINISTRATOR else {"course__lecturer": request.user}
     if kind == "lesson":
-        item = get_object_or_404(Lesson, pk=pk, course__lecturer=request.user)
+        item = get_object_or_404(Lesson, pk=pk, **scope)
     else:
         from assessments.models import DiagnosticQuestion
-        item = get_object_or_404(DiagnosticQuestion, pk=pk, course__lecturer=request.user)
+        item = get_object_or_404(DiagnosticQuestion, pk=pk, **scope)
     return render(request, "dashboard/content_preview.html", {"item": item, "kind": kind})
 
 
