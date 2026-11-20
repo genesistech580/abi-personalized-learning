@@ -16,7 +16,7 @@ with sqlite3.connect("db.sqlite3") as source, sqlite3.connect(sys.argv[1]) as ta
     source.backup(target)
 PY
 fi
-tar --exclude='./.venv' --exclude='./media' --exclude='./staticfiles'     --exclude='./db.sqlite3*' --exclude='./.hosting-env' --exclude='./.deployment-lock'     -czf "$backup/source.tar.gz" .
+tar --exclude='./.venv' --exclude='./media' --exclude='./staticfiles'     --exclude='./db.sqlite3*' --exclude='./.hosting-env' --exclude='./.ai-env*' --exclude='./.deployment-lock'     -czf "$backup/source.tar.gz" .
 tar -xzf "$HOME/abi-release.tar.gz" -C .
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python manage.py check --settings=config.hosting

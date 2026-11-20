@@ -181,3 +181,10 @@ header .topbar {
 .report-table-wrap th,.report-table-wrap td {padding:12px; text-align:left; border-bottom:1px solid #e5e9ef;}
 .dashboard-roster strong,.dashboard-roster .muted {overflow-wrap:anywhere;}
 @media(max-width:600px){.admin-filters {padding:12px;}.admin-filters p {flex-basis:100%;}.course-actions {flex-wrap:wrap;}}
+
+.assistant-messages {max-height:65vh; overflow-y:auto; overflow-wrap:anywhere;}
+.chat-message p {white-space:pre-wrap;}
+#chat-status {margin-left:12px; color:#526277;}
+#chat-error {color:#a6192e;}
+#chat-form button:disabled {opacity:.65; cursor:wait;}
+#chat-form textarea {width:100%; box-sizing:border-box;}

@@ -3,10 +3,20 @@
     const version = script.dataset.version;
     const activity = script.dataset.activity;
     let dirty = false;
+    const changedForms = new Set();
     let checking = false;
     let pending = false;
-    document.addEventListener("input", () => { dirty = true; });
-    document.addEventListener("change", () => { dirty = true; });
+    function changed(event) {
+        changedForms.add(event.target.closest("form") || event.target);
+        dirty = true;
+    }
+    document.addEventListener("input", changed);
+    document.addEventListener("change", changed);
+    document.addEventListener("abi:form-saved", (event) => {
+        changedForms.delete(event.detail.form);
+        dirty = changedForms.size > 0;
+        if (!dirty && pending) window.location.reload();
+    });
     async function check() {
         if (document.hidden || checking || pending) return;
         checking = true;

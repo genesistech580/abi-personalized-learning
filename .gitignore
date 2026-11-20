@@ -20,3 +20,5 @@ deployment/release.txt
 .activity-version
 
 .backup-status*
+
+.ai-env*

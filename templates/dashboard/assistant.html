@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Learning assistant | ABI TECH{% endblock %}
 {% block content %}
 <h1>Learning assistant</h1>
@@ -62,7 +63,7 @@
     <h2 id="chat-title">AI chat</h2>
     {% if chat_enabled %}
     <p class="muted">Messages and course excerpts are sent to OpenAI. Keep personal information out of your message.</p>
-    <div class="assistant-messages">
+    <div class="assistant-messages" id="chat-messages" role="log" aria-live="polite" aria-label="Conversation">
         {% for message in chat_history %}
         <div class="chat-message chat-{{ message.role }}">
             <strong>{% if message.role == "user" %}You{% else %}Assistant{% endif %}</strong>
@@ -70,13 +71,14 @@
         </div>
         {% endfor %}
     </div>
-    <form method="post" action="{% url 'learning_assistant' %}?course={{ course.pk }}#course-chat">
+    <form id="chat-form" method="post" action="{% url 'learning_assistant' %}?course={{ course.pk }}#course-chat">
         {% csrf_token %}
         {{ chat_form.as_p }}
-        <button type="submit">Send message</button>
+        <button type="submit">Send message</button><span id="chat-status" role="status" aria-live="polite"></span><p id="chat-error" role="alert" hidden></p>
     </form>
+    {% if chat_history %}<form method="post" action="{% url 'learning_assistant' %}?course={{ course.pk }}#course-chat">{% csrf_token %}<input type="hidden" name="action" value="clear"><button type="submit" class="button-secondary">Clear conversation</button></form>{% endif %}
     {% else %}
-    <p>AI chat is not configured yet.</p>
+    <p>Chat is not enabled yet. Ask your administrator to enable it in System status.</p>
     {% endif %}
 </section>
 {% elif user.role == "student" %}
@@ -86,6 +88,7 @@
 <p>No courses assigned yet.</p>
 {% endif %}
 <p><a href="{% url 'dashboard' %}">Back to dashboard</a></p>
+<script src="{% static 'dashboard/chat.js' %}?v={{ release_version }}" defer></script>
 {% endblock %}
 
 

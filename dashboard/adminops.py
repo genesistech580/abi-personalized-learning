@@ -21,6 +21,8 @@ from accounts.models import User
 from assessments.models import DiagnosticAttempt, DiagnosticQuestion, PilotFeedback
 from courses.models import Course, Enrollment, Lesson, LessonCompletion, LessonVisit
 from .models import AuditEvent, ResearchConsent, ConsentEvent, ServiceStatus
+from .chat import chat_configuration, save_chat_configuration, request_reply, ChatError
+from .services import record_service
 
 def administrator(view):
 
@@ -61,8 +63,49 @@ def paged(request, rows):
 def link(name, *args):
     return reverse(name, args=args)
 
+class AIConfigurationForm(forms.Form):
+    key = forms.CharField(label='OpenAI API key', max_length=512, widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}))
+    model = forms.RegexField(label='Model', regex=r'^[A-Za-z0-9._:-]+$', max_length=100)
+
+    def clean_key(self):
+        key = self.cleaned_data['key'].strip()
+        if not key.startswith('sk-') or any(char.isspace() for char in key):
+            raise forms.ValidationError('Enter an API key without spaces or quotation marks.')
+        return key
+
+
 @administrator
 def hub(request, section='students'):
+    if request.method not in {'GET', 'POST'}:
+        raise PermissionDenied
+    if request.method == 'POST' and section != 'system':
+        raise PermissionDenied
+    ai_form = AIConfigurationForm(initial={'model': chat_configuration()[1]})
+    if section == 'system' and request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'configure_ai':
+            ai_form = AIConfigurationForm(request.POST)
+            if ai_form.is_valid():
+                try:
+                    save_chat_configuration(ai_form.cleaned_data['key'], ai_form.cleaned_data['model'])
+                except OSError:
+                    ai_form.add_error(None, 'Configuration could not be saved. Check private server file permissions.')
+                else:
+                    AuditEvent.objects.create(actor=request.user, actor_label=request.user.username, action='configure', model_label='service.ai', object_id='configuration', fields=['key', 'model'])
+                    messages.success(request, 'AI configuration saved. Use Test connection to verify it.')
+                    return redirect('admin_hub', section='system')
+        elif action == 'test_ai':
+            try:
+                request_reply([{'role': 'user', 'content': 'Reply with OK.'}], 'This is a connection check.', max_tokens=64)
+            except ChatError as error:
+                record_service('ai', False, 'AI connection check failed: ' + error.code + '.')
+                messages.error(request, error.message)
+            else:
+                record_service('ai', True, 'AI connection check succeeded.')
+                messages.success(request, 'AI connection succeeded. Chat is ready.')
+            return redirect('admin_hub', section='system')
+        else:
+            raise PermissionDenied
     titles = {'students': 'Students', 'lecturers': 'Lecturers', 'courses': 'Courses', 'enrollments': 'Enrollments', 'content': 'Content oversight', 'consent': 'Research participation', 'audit': 'Audit history', 'system': 'System status'}
     if section not in titles:
         from django.http import Http404
@@ -187,9 +230,11 @@ def hub(request, section='students'):
             backup = json.loads((settings.BASE_DIR / '.backup-status.json').read_text())
         except (OSError, ValueError):
             pass
+        context['ai_form'] = ai_form
+        context['ai_model'] = chat_configuration()[1]
         context['service_history'] = ServiceStatus.objects.order_by('service')
         context['backup_stale'] = not backup.get('verified_at') or timezone.now() - datetime.fromisoformat(backup['verified_at']) > timedelta(hours=36)
-        context['services'] = {'database_ms': round(1000 * (perf_counter() - started), 1), 'email': bool(settings.EMAIL_HOST and settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD), 'ai': bool(settings.OPENAI_API_KEY), 'backup': backup}
+        context['services'] = {'database_ms': round(1000 * (perf_counter() - started), 1), 'email': bool(settings.EMAIL_HOST and settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD), 'ai': bool(chat_configuration()[0]), 'backup': backup}
     return render(request, 'dashboard/admin_hub.html', context)
 
 @administrator

@@ -46,3 +46,16 @@ site, and verify sign-in and sampled records. Do not run live restoration as a w
 System status shows the last restore verification, database response and email/AI configuration.
 The last actual AI request and password-reset mail outcome are recorded without provider response bodies or recipient details. Email acceptance by the mail backend does not prove inbox delivery. Configuration is not a successful SMTP delivery or AI quota check. Never enter API secrets
 into report fields or commit them to Git.
+
+## AI chat setup
+Open System status as an administrator, enter a fresh API key in AI chat configuration,
+and save. The key is written with private permissions to .ai-env.json outside version
+control and excluded from deployment source archives. It is never rendered back into
+forms or audit field values. Runtime configuration is read for each chat request, so
+all workers use updates without a manual restart. .hosting-env remains a supported
+fallback when the private AI configuration file is absent.
+Use Test connection for one short API request. This can consume a small number of API
+tokens. Quota/billing failures require action on the provider account; changing the UI
+cannot add credit. Local terminal configuration is independent of the hosted server.
+Chat displays replies in place, prevents duplicate clicks while waiting, preserves
+unsent questions on failure, and stores a bounded conversation per course in the session.

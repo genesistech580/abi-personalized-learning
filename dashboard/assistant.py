@@ -1,12 +1,8 @@
-import json
-from urllib.error import HTTPError
-
 from django import forms
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Exists, F, OuterRef, Subquery
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -17,7 +13,7 @@ from recommendations.services import diagnostic_reviews
 
 
 from .services import record_service
-from .chat import course_reply
+from .chat import course_reply, ChatError, chat_configuration
 
 
 class ChatForm(forms.Form):
@@ -70,44 +66,36 @@ def learning_assistant(request):
     if course:
         chat_key = f"course-chat:{course.pk}"
         history = request.session.get(chat_key, [])
+        if not isinstance(history, list):
+            history = []
+        history = [item for item in history[-12:] if isinstance(item, dict) and item.get("role") in {"user", "assistant"} and isinstance(item.get("content"), str)]
         form = ChatForm(request.POST if request.method == "POST" else None)
+        if request.method == "POST" and request.POST.get("action") == "clear":
+            request.session.pop(chat_key, None)
+            return redirect(f"{reverse('learning_assistant')}?course={course.pk}#course-chat")
         if form.is_valid():
-            if not settings.OPENAI_API_KEY:
-                form.add_error(None, "AI chat is not configured yet.")
+            conversation = history[-10:] + [{"role": "user", "content": form.cleaned_data["message"]}]
+            try:
+                reply = course_reply(course, user.role, conversation)
+                if not isinstance(reply, str) or not reply.strip():
+                    raise ChatError("The AI returned no reply. Please try again.", "empty_response")
+            except ChatError as error:
+                form.add_error(None, error.message)
+                record_service("ai", False, "AI request failed: " + error.code + ".")
+            except (OSError, ValueError):
+                form.add_error(None, "Could not reach the AI service. Please try again shortly.")
+                record_service("ai", False, "AI request failed: connection or response.")
             else:
-                messages = history[-6:] + [{"role": "user", "content": form.cleaned_data["message"]}]
-                try:
-                    reply = course_reply(course, user.role, messages)
-                except HTTPError as error:
-                    errors = {
-                        401: "OpenAI rejected the API key.",
-                        403: "The API key lacks permission for this request.",
-                        404: "The AI model is unavailable to this API project.",
-                        429: "OpenAI usage limit reached. Check API billing and quota.",
-                    }
-                    if error.code == 429:
-                        try:
-                            provider_code = json.load(error).get("error", {}).get("code")
-                        except (ValueError, AttributeError, OSError):
-                            provider_code = None
-                        if provider_code == "insufficient_quota":
-                            errors[429] = "OpenAI API quota is unavailable. Ask the administrator to check API billing."
-                        elif provider_code == "rate_limit_exceeded":
-                            errors[429] = "Too many AI requests. Wait a moment and try again."
-                    form.add_error(None, errors.get(error.code, f"OpenAI returned HTTP {error.code}."))
-                    reply = ""
-                except OSError:
-                    form.add_error(None, "The server could not reach OpenAI.")
-                    reply = ""
-                except ValueError:
-                    reply = ""
-                record_service("ai", bool(reply), "AI provider returned a reply." if reply else "AI request failed; check provider access, quota or connectivity.")
-                if reply:
-                    request.session[chat_key] = messages + [{"role": "assistant", "content": reply}]
-                    return redirect(f"{reverse('learning_assistant')}?course={course.pk}#course-chat")
-                if not form.errors:
-                    form.add_error(None, "OpenAI returned no reply. Please try again.")
-        context.update(chat_form=form, chat_history=history, chat_enabled=bool(settings.OPENAI_API_KEY))
+                history = conversation + [{"role": "assistant", "content": reply}]
+                request.session[chat_key] = history
+                record_service("ai", True, "AI provider returned a reply.")
+                if request.headers.get("Accept") == "application/json":
+                    return JsonResponse({"history": history})
+                return redirect(f"{reverse('learning_assistant')}?course={course.pk}#course-chat")
+        if request.method == "POST" and request.headers.get("Accept") == "application/json":
+            errors = [str(error) for errors in form.errors.values() for error in errors]
+            return JsonResponse({"error": " ".join(errors)}, status=400)
+        context.update(chat_form=form, chat_history=history, chat_enabled=bool(chat_configuration()[0]))
     return render(request, "dashboard/assistant.html", context)
 
 
