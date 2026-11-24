@@ -9,6 +9,13 @@ class LearningUserManager(UserManager):
 
 
 class User(AbstractUser):
+    programme = models.CharField(max_length=120, default="ICT in Education")
+    level = models.PositiveSmallIntegerField(default=200, choices=[(200, "Level 200")])
+
+    @property
+    def learner_id(self):
+        return f"UEW-{self.pk:06d}" if self.pk else "Assigned after registration"
+
     def delete(self, *args, **kwargs):
         self.is_active = False
         self.save(update_fields=["is_active"])

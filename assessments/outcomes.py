@@ -42,7 +42,7 @@ def outcomes(request):
         for history in histories[course.pk].values():
             latest = history[-1]
             for topic, result in latest.results.items():
-                if result["correct"] < result["total"]:
+                if result["correct"] * 100 < 70 * result["total"]:
                     review_topics[topic] = review_topics.get(topic, 0) + 1
             if not latest.quiz_version:
                 continue

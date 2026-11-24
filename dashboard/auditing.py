@@ -4,7 +4,7 @@ from django.db.models.signals import post_save, pre_save, pre_delete
 from django.db.models.deletion import ProtectedError
 
 actor_context = ContextVar("audit_actor", default=None)
-TRACKED = {"accounts.user", "courses.course", "courses.enrollment", "courses.lesson",
+TRACKED = {"accounts.user", "courses.course", "courses.enrollment", "courses.lesson", "courses.learningresource",
            "assessments.assessment", "assessments.diagnosticquestion", "assessments.diagnosticattempt",
            "assessments.submission", "assessments.learningfeedback", "assessments.pilotfeedback",
            "dashboard.researchconsent", "dashboard.consentevent"}

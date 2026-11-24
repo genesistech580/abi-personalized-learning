@@ -4,10 +4,11 @@
     <h1>{% if stage == "followup" %}Follow-up quiz{% else %}Diagnostic quiz{% endif %}</h1>
     <p>{{ course.title }}</p>
     {% if latest %}
+    <p><a class="button" href="{% url 'dashboard' %}?section=recommended">Open updated learning plan</a></p>
     <h2>Latest result · {{ latest.correct_count }}/{{ latest.question_count }}</h2>
     <ul class="dashboard-roster">
-        {% for topic, result in latest.results.items %}
-        <li>{{ topic }} <strong>{{ result.correct }}/{{ result.total }}</strong></li>
+        {% for topic in plan.topics %}
+        <li>{{ topic.name }} <strong>{{ topic.score|floatformat:0 }}% · {{ topic.category }}</strong></li>
         {% endfor %}
     </ul>
     {% endif %}

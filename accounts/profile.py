@@ -18,9 +18,15 @@ from .models import User
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ("first_name", "last_name", "email", "photo")
+        fields = ("first_name", "last_name", "email", "programme", "level", "photo")
         labels = {"photo": "Profile photo"}
         widgets = {"photo": forms.FileInput(attrs={"accept": "image/jpeg,image/png"})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.role != User.Role.STUDENT:
+            self.fields.pop("programme", None)
+            self.fields.pop("level", None)
 
     remove_photo = forms.BooleanField(required=False, label="Remove photo")
 

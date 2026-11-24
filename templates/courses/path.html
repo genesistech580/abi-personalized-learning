@@ -18,6 +18,7 @@
     <a class="button" href="{% url 'read_lesson' next_lesson.pk %}">Continue learning</a>
     {% endif %}
     {% endif %}
+    <p><a href="{% url 'course_resources' course.pk %}">Learning resources</a> · <a href="{% url 'dashboard' %}?section=recommended">My learning plan</a></p>
     <h2>Lessons</h2>
     <ol>
         {% for lesson in lessons %}

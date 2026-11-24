@@ -48,7 +48,7 @@ def diagnostic_reviews(student, course=None):
     latest = attempts.filter(pk=Subquery(latest_ids)).order_by("-pk")
     results_by_course = {attempt.course_id: attempt.results for attempt in latest}
     questions = DiagnosticQuestion.objects.filter(
-        course_id__in=results_by_course, review_lesson__course_id=F("course_id"), review_lesson__status="published"
+        status="published", course_id__in=results_by_course, review_lesson__course_id=F("course_id"), review_lesson__status="published"
     ).select_related("review_lesson__course").order_by("course_id", "pk")
     recommendations = []
     seen = set()
@@ -57,14 +57,14 @@ def diagnostic_reviews(student, course=None):
         linked_topics.add((question.course_id, question.topic))
         result = results_by_course[question.course_id].get(question.topic)
         key = (question.topic, question.review_lesson_id)
-        if result and result["correct"] < result["total"] and key not in seen:
+        if result and result["correct"] * 100 < 70 * result["total"] and key not in seen:
             recommendations.append((question.review_lesson, question.topic, result))
             seen.add(key)
     for lesson in Lesson.objects.filter(course_id__in=results_by_course, status="published").select_related("course"):
         for topic, result in results_by_course[lesson.course_id].items():
             if (lesson.course_id, topic) in linked_topics or topic.casefold() != lesson.title.casefold():
                 continue
-            if result["correct"] < result["total"]:
+            if result["correct"] * 100 < 70 * result["total"]:
                 recommendations.append((lesson, topic, result))
     from .learner_model import rank_reviews
     return rank_reviews(student, recommendations)

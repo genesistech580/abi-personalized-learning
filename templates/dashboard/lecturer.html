@@ -43,9 +43,9 @@
             <li>
                 <strong>{{ course.code }} · {{ course.title }}</strong>
                 <div class="course-actions">
-                    <a href="{% url 'learning_path' course.pk %}">Lessons</a> <a href="{% url 'course_report' course.pk %}">Progress report</a> <a href="{% url 'publish_check' course.pk %}">Quiz review</a>
+                    <a href="{% url 'course_resources' course.pk %}">Resources</a> <a href="{% url 'learning_path' course.pk %}">Lessons</a> <a href="{% url 'course_report' course.pk %}">Progress report</a> <a href="{% url 'publish_check' course.pk %}">Quiz review</a>
                     <a href="{% url 'edit_course' course.pk %}">Edit course</a>
-                    <a class="delete-link" href="{% url 'delete_course' course.pk %}">Delete course</a>
+                    <a class="delete-link" href="{% url 'delete_course' course.pk %}">Archive course</a>
                 </div>
             </li>
             {% empty %}<li>No courses yet.</li>{% endfor %}
@@ -57,7 +57,7 @@
             <h2 id="insights-{{ course.pk }}">{{ course.title }}</h2>
             <ul class="dashboard-roster">
                 {% for name, totals in topics %}
-                <li><strong>{{ name }}</strong><span>{{ totals.review }} of {{ totals.students }} students missed a question</span></li>
+                <li><strong>{{ name }}</strong><span>{{ totals.review }} of {{ totals.students }} students scored below 70%</span></li>
                 {% empty %}<li>No diagnostic results yet.</li>{% endfor %}
             </ul>
         </section>

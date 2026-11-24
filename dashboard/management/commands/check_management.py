@@ -4,6 +4,7 @@ from django.test import RequestFactory
 from accounts.models import User
 from courses.models import Enrollment, Lesson
 from dashboard import adminops
+from dashboard.views import index
 from dashboard.teaching import teaching, content_preview
 
 
@@ -38,4 +39,13 @@ class Command(BaseCommand):
         lesson = Lesson.objects.first()
         if lesson:
             check(content_preview, "/teaching/preview/", kind="lesson", pk=lesson.pk)
-        self.stdout.write(self.style.SUCCESS(f"{count} administrator read-only screens rendered successfully."))
+        learner = User.objects.filter(role="student", is_active=True).first()
+        if learner:
+            for section in ["overview", "recommended", "performance"]:
+                request = factory.get("/", {"section": section})
+                request.user = learner
+                request.session = {}
+                if index(request).status_code != 200:
+                    raise CommandError("Student learning profile did not render.")
+                count += 1
+        self.stdout.write(self.style.SUCCESS(f"{count} administrator/student read-only screens rendered successfully."))

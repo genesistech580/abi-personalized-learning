@@ -1,0 +1,26 @@
+name: Prepare DSA learning prototype
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    environment: alwaysdata
+    steps:
+      - name: Configure SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.ALWAYSDATA_SSH_KEY }}
+          HOST_KEYS: ${{ secrets.ALWAYSDATA_KNOWN_HOSTS }}
+        run: |
+          test -n "$DEPLOY_KEY"
+          test -n "$HOST_KEYS"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$HOST_KEYS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+      - name: Back up and prepare DSA curriculum
+        run: |
+          ssh genesistech1@ssh-genesistech1.alwaysdata.net 'cd /home/genesistech1/abi-learning && flock -w 120 .deployment-lock bash -c "source .hosting-env && .venv/bin/python manage.py backup_system --settings=config.hosting && .venv/bin/python manage.py prepare_dsa --settings=config.hosting && .venv/bin/python manage.py check_management --settings=config.hosting"'

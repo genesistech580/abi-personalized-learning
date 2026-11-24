@@ -3,7 +3,7 @@
 {% block content %}
 <article class="panel form-panel">
     <h1>Profile</h1>
-    <p>{{ user.username }} · {{ user.get_role_display }}</p>
+    <p>{{ user.username }} · {{ user.get_role_display }}</p>{% if user.role == "student" %}<p>Learner ID: {{ user.learner_id }} · {{ user.programme }} · Level {{ user.level }}</p>{% endif %}
     <img id="profile-preview" class="profile-photo" alt="Your profile photo"
         {% if user.photo %}src="{% url 'profile_photo' %}"{% else %}hidden{% endif %}>
     <form method="post" enctype="multipart/form-data">

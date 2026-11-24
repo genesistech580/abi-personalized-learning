@@ -14,7 +14,8 @@ from courses.models import Course
 from recommendations.services import diagnostic_reviews
 
 from .models import DiagnosticAttempt, DiagnosticQuestion
-from .publishing import approved
+from .publishing import approved, coverage, signature
+from recommendations.plans import topic_plan
 
 
 class QuestionForm(forms.ModelForm):
@@ -49,6 +50,9 @@ def diagnostic(request, pk):
             widget=forms.RadioSelect,
         )
 
+    if stage == "followup" and not course.diagnostic_attempts.filter(student=student, stage="diagnostic").exists():
+        messages.info(request, "Take the diagnostic quiz before the follow-up.")
+        return redirect("diagnostic", pk=course.pk)
     if stage == "followup" and not approved(course):
         messages.info(request, "Follow-up quiz is awaiting lecturer review.")
         return redirect("learning_path", pk=course.pk)
@@ -73,10 +77,12 @@ def diagnostic(request, pk):
                     "practice": question.practice,
                     "lesson_id": question.review_lesson_id,
                 })
+        first_coverage, followup_coverage = coverage(course)
+        comparison_identity = signature(course) if first_coverage and first_coverage == followup_coverage else ""
         DiagnosticAttempt.objects.create(
             course=course, student=student, results=results, quiz_version=version,
             stage=stage, comparison_key=(
-                course.quiz_approval if approved(course) else ""
+                comparison_identity
             ), question_feedback=feedback,
             question_snapshot=[
                 {"topic": q.topic, "prompt": q.prompt, "selected": form.cleaned_data[str(q.pk)],
@@ -93,7 +99,8 @@ def diagnostic(request, pk):
     return render(request, "assessments/diagnostic.html", {
         "course": course, "form": form, "latest": latest, "has_questions": bool(questions),
         "attempts": attempts, "review_lessons": review_lessons, "stage": stage,
-        "has_followup": course.diagnostic_questions.filter(stage="followup").exists(),
+        "plan": topic_plan(student, course),
+        "has_followup": approved(course),
     })
 
 

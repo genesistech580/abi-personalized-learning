@@ -10,7 +10,8 @@ from accounts.models import User
 from assessments.diagnostics import QuestionForm
 from assessments.models import DiagnosticAttempt, LearningFeedback, Submission
 from assessments.publishing import approved, coverage, signature
-from courses.models import Course, Lesson, LessonCompletion
+from courses.models import Course, Lesson, LessonCompletion, ResourceProgress
+from recommendations.plans import topic_plan
 from courses.views import LessonForm
 
 
@@ -50,8 +51,8 @@ def teaching(request, pk=None, student_id=None):
         pending = course.assessments.exclude(submissions__student=student).count()
         latest = attempts[-1] if attempts else None
         change = None
-        if latest and latest.comparison_key:
-            first = next((attempt for attempt in attempts if attempt.comparison_key == latest.comparison_key), None)
+        if latest and latest.stage == "followup" and latest.comparison_key:
+            first = next((attempt for attempt in attempts if attempt.stage == "diagnostic" and attempt.comparison_key == latest.comparison_key and attempt.pk < latest.pk), None)
             if first and first.pk != latest.pk and first.question_count and latest.question_count:
                 change = 100 * (latest.correct_count / latest.question_count - first.correct_count / first.question_count)
         rows.append({"student": student, "completed": completed, "attempts": len(attempts),
@@ -64,12 +65,14 @@ def teaching(request, pk=None, student_id=None):
         context.update(
             learner=student, attempts=attempts,
             enrollment=enrollment,
+            topic_profile=topic_plan(student, course),
+            resource_activity=ResourceProgress.objects.filter(student=student, resource__course=course).select_related("resource").order_by("-last_opened_at"),
             lesson_states=[(lesson, LessonCompletion.objects.filter(student=student, lesson=lesson).first()) for lesson in course.lessons.all()],
             completions=LessonCompletion.objects.filter(student=student, lesson__course=course).select_related("lesson"),
             comments=LearningFeedback.objects.filter(student=student, course=course).select_related("lesson").order_by("-pk"),
             weak_topics=[
                 name for name, result in attempts[0].results.items()
-                if result["correct"] < result["total"]
+                if result["correct"] * 100 < 70 * result["total"]
             ] if attempts else [],
         )
         form = FeedbackForm(request.POST if request.method == "POST" else None)

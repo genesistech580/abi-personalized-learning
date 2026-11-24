@@ -12,7 +12,7 @@
         <a href="?section=courses"{% if section == 'courses' %} aria-current="page"{% endif %}>My courses</a>
         <a href="?section=catalog"{% if section == 'catalog' %} aria-current="page"{% endif %}>All courses</a>
         <a href="?section=assessments"{% if section == 'assessments' %} aria-current="page"{% endif %}>Assessments</a>
-        <a href="?section=recommended"{% if section == 'recommended' %} aria-current="page"{% endif %}>Recommended</a>
+        <a href="?section=recommended"{% if section == 'recommended' %} aria-current="page"{% endif %}>My learning plan</a>
         <a href="?section=performance"{% if section == 'performance' %} aria-current="page"{% endif %}>Performance</a>
         <a href="{% url 'outcomes' %}">Pilot outcomes</a>
         <a href="{% url 'pilot_feedback' %}">Pilot feedback</a>
@@ -26,7 +26,8 @@
         <h1 class="overview-heading">Welcome back, {{ user.first_name|default:user.username }}</h1>
         <section class="overview-next overview-feature" aria-labelledby="next-heading">
             <div>
-                {% if next_lesson %}
+                {% if needs_diagnostic %}<h2 id="next-heading">Start your diagnostic</h2><p>{{ needs_diagnostic.course.title }}</p><a class="button" href="{% url 'diagnostic' needs_diagnostic.course.pk %}">Take diagnostic quiz</a>
+                {% elif next_lesson %}
                 <h2 id="next-heading">Continue learning</h2>
                 <p class="featured-course">{{ featured_course.title }}</p>
                 <label for="overview-progress">{{ completed_count }} of {{ featured_course.learning_lessons|length }} lessons complete</label>
@@ -39,6 +40,7 @@
             </div>
             <div class="learning-art" aria-hidden="true">&lt;/&gt;</div>
         </section>
+        <p><a class="button button-secondary" href="?section=recommended">Open my learning plan</a></p>
         <div class="learning-overview-grid">
             <section class="panel learning-path" aria-labelledby="overview-path">
                 <h2 id="overview-path">Learning path</h2>
@@ -103,31 +105,9 @@
         {% elif section == "performance" %}
         {% include "dashboard/performance.html" %}
         {% elif section == "recommended" %}
-        <h1>Recommended next</h1>
-{% for feedback in lecturer_feedback %}
-<section class="panel">
-<strong>{{ feedback.course.title }} · {{ feedback.topic }}</strong>
-{{ feedback.comment|linebreaks }}
-{% if feedback.lesson and feedback.lesson.status == "published" %}<a href="{% url 'read_lesson' feedback.lesson.pk %}">Review lesson</a>{% endif %}
-</section>
-{% endfor %}
-        <ul class="dashboard-roster">
-            {% for lesson, topic, result in diagnostic_reviews %}
-            <li><a href="{% url 'read_lesson' lesson.pk %}">Review {{ lesson.title }}</a>
-                <span>{{ lesson.course.code }} · {{ topic }} · {{ result.correct }} of {{ result.total }} correct</span></li>
-            {% endfor %}
-            {% for assessment, action in recommendations %}
-            <li><a href="{% url 'submit_assessment' assessment.pk %}">{{ assessment.title }}</a><span>{{ assessment.course.code }} · {{ action }}</span></li>
-            {% empty %}{% if not diagnostic_reviews %}<li>{% if diagnostic_courses %}Take a diagnostic quiz to get review suggestions.{% else %}No diagnostic quizzes available yet.{% endif %}</li>{% endif %}{% endfor %}
-        </ul>
-        {% if diagnostic_courses %}
-        <h2>Diagnostic quizzes</h2>
-        <ul class="dashboard-roster">
-            {% for course in diagnostic_courses %}
-            <li><a href="{% url 'diagnostic' course.pk %}">{{ course.title }}</a></li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+        <h1>My learning plan</h1>
+        {% include "dashboard/topic_plan.html" %}
+        {% for feedback in lecturer_feedback %}<section class="panel"><h2>{{ feedback.course.title }} · {{ feedback.topic }}</h2>{{ feedback.comment|linebreaks }}{% if feedback.lesson and feedback.lesson.status == "published" %}<a href="{% url 'read_lesson' feedback.lesson.pk %}">Lecturer's suggested lesson</a>{% endif %}</section>{% endfor %}
         {% endif %}
     </div>
 </div>

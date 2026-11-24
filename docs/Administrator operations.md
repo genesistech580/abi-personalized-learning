@@ -68,3 +68,27 @@ If no relevant content exists, it suggests course lessons or asks for lecturer m
 System status has an explicit mode selector. The existing API key is retained privately
 for a future switch back to OpenAI. Selecting OpenAI requires available provider credit;
 there is no automatic paid fallback when free mode cannot answer a question.
+
+## Personalized learning workflow
+Learner profiles include programme, level and a generated learner ID. Enrolled students
+start with a diagnostic. The latest topic score selects Poor (below 40), Below average
+(40 to below 50), Average (50 to below 70), Good (70 to below 85), or Excellent (85+).
+These initial thresholds come from the supplied workflow and need supervisor review.
+Poor/Below average retrieve foundational resources, Average retrieves revision,
+Good retrieves intermediate and Excellent retrieves advanced resources. Resource tags
+must match the topic and difficulty; absent matching content is reported explicitly.
+A single score is not a complete measure of ability. Attempts, completion and activity
+remain visible, and only approved, unchanged diagnostic/follow-up pairs show change.
+The mechanism uses transparent rules. It does not claim a trained Decision Tree without
+an adequate evaluated dataset. The free course-help chat remains independent.
+
+Lecturers and administrators can add topic-tagged notes/PDFs, video links, worked examples,
+practice and programming exercises under Course resources. PDFs are private downloads;
+only authorized course users can open them. Students can mark resources complete.
+
+Run prepare_dsa once, optionally with --lecturer USERNAME. It creates DSA200 using an
+existing active lecturer, five topic lessons, 32 tiered resources and parallel question
+banks of 50 questions each. It does not overwrite an existing DSA200 course and does
+not create synthetic student results or claim pilot effectiveness. The assigned lecturer
+must review the questions and confirm comparable difficulty under Quiz review before
+the follow-up quiz is enabled. Administrators may reassign the lecturer using Edit course.

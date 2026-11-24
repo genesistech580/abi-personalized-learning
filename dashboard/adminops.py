@@ -19,7 +19,7 @@ from django.utils.crypto import salted_hmac
 from django.views.decorators.http import require_http_methods
 from accounts.models import User
 from assessments.models import DiagnosticAttempt, DiagnosticQuestion, PilotFeedback
-from courses.models import Course, Enrollment, Lesson, LessonCompletion, LessonVisit
+from courses.models import Course, Enrollment, Lesson, LessonCompletion, LessonVisit, ResourceProgress
 from .models import AuditEvent, ResearchConsent, ConsentEvent, ServiceStatus
 from .chat import chat_configuration, save_chat_configuration, request_reply, ChatError, chat_mode, save_chat_mode
 from .services import record_service
@@ -167,7 +167,7 @@ def hub(request, section='students'):
             courses = courses.filter(archived_at__isnull=status == 'active')
         source_page = paged(request, courses)
         for course in source_page['page_obj']:
-            rows.append({'label': str(course), 'detail': course.lecturer.username, 'status': 'Archived' if course.archived_at else 'Active', 'links': [('Edit', link('edit_course', course.pk)), ('Students', link('course_report', course.pk)), ('Content', link('admin_hub', 'content') + '?course=' + str(course.pk)), ('Restore' if course.archived_at else 'Archive', link('admin_course_state', course.pk))]})
+            rows.append({'label': str(course), 'detail': course.lecturer.username, 'status': 'Archived' if course.archived_at else 'Active', 'links': [('Edit', link('edit_course', course.pk)), ('Students', link('course_report', course.pk)), ('Content', link('admin_hub', 'content') + '?course=' + str(course.pk)), ('Resources', link('course_resources', course.pk)), ('Restore' if course.archived_at else 'Archive', link('admin_course_state', course.pk))]})
     elif section == 'enrollments':
         records = Enrollment.objects.select_related('course', 'student').order_by('course__code', 'student__username')
         if q:
@@ -373,7 +373,9 @@ def research_rows(data):
         survey = date_range(survey, 'updated_at', data).first()
         completions = date_range(LessonCompletion.objects.filter(student_id=student_id, lesson__course_id=course_id, completed_at__gte=consent_by_student[student_id].consented_at), 'completed_at', data).count()
         visits = date_range(LessonVisit.objects.filter(student_id=student_id, lesson__course_id=course_id, last_opened_at__gte=consent_by_student[student_id].consented_at), 'last_opened_at', data).count()
-        rows.append({'participant': salted_hmac('research-export', str(student_id)).hexdigest()[:16], 'course': codes[course_id], 'attempts': len(history), 'completed': completions, 'visited': visits, 'before': before, 'after': after, 'change': after - before if comparable else None, 'ease': survey.ease if survey else '', 'clarity': survey.clarity if survey else '', 'usefulness': survey.usefulness if survey else ''})
+        resources_completed = date_range(ResourceProgress.objects.filter(student_id=student_id, resource__course_id=course_id, completed_at__gte=consent_by_student[student_id].consented_at), 'completed_at', data).count()
+        resources_opened = date_range(ResourceProgress.objects.filter(student_id=student_id, resource__course_id=course_id, last_opened_at__gte=consent_by_student[student_id].consented_at), 'last_opened_at', data).count()
+        rows.append({'resources_completed': resources_completed, 'resources_opened': resources_opened, 'participant': salted_hmac('research-export', str(student_id)).hexdigest()[:16], 'course': codes[course_id], 'attempts': len(history), 'completed': completions, 'visited': visits, 'before': before, 'after': after, 'change': after - before if comparable else None, 'ease': survey.ease if survey else '', 'clarity': survey.clarity if survey else '', 'usefulness': survey.usefulness if survey else ''})
     return rows
 
 
@@ -435,7 +437,7 @@ def evaluation(request):
         response['Content-Disposition'] = 'attachment; filename="learning-evaluation.csv"'
         response['Cache-Control'] = 'private, no-store'
         writer = csv.writer(response)
-        keys = ['participant', 'course', 'attempts', 'completed', 'visited', 'before', 'after', 'change', 'ease', 'clarity', 'usefulness']
+        keys = ['participant', 'course', 'attempts', 'completed', 'visited', 'resources_completed', 'resources_opened', 'before', 'after', 'change', 'ease', 'clarity', 'usefulness']
         writer.writerow(keys)
         for row in rows:
             values = [row[key] for key in keys]

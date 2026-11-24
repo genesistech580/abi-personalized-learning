@@ -8,6 +8,7 @@ from accounts.models import User
 from assessments.models import Assessment, DiagnosticAttempt, LearningFeedback, Submission
 from courses.models import Course, Enrollment, Lesson, LessonCompletion
 from recommendations.services import diagnostic_reviews, for_student
+from recommendations.plans import learning_plans
 
 from .forms import AssessmentForm, CourseForm, EnrollmentForm, LecturerForm
 
@@ -30,35 +31,10 @@ def index(request):
             return redirect("dashboard")
         context["section"] = section
         context["lecturer_feedback"] = LearningFeedback.objects.filter(student=user, course__enrollments__student=user, course__enrollments__withdrawn_at__isnull=True, course__archived_at__isnull=True).select_related("course", "lesson").order_by("-pk")[:20]
+        if section in {"overview", "recommended", "performance"}:
+            context["learning_plans"] = learning_plans(user)
+            context["needs_diagnostic"] = next((plan for plan in context["learning_plans"] if plan["needs_diagnostic"] and plan["course"].diagnostic_questions.filter(stage="diagnostic", status="published").exists()), None)
         if section == "performance":
-            attempts = DiagnosticAttempt.objects.filter(
-                student=user, course__enrollments__student=user, course__enrollments__withdrawn_at__isnull=True, course__archived_at__isnull=True
-            ).select_related("course").order_by("-pk")
-            by_course = {}
-            for attempt in attempts:
-                history = by_course.setdefault(attempt.course_id, [])
-                if len(history) < 2:
-                    history.append(attempt)
-
-            reviews_by_course = {}
-            for lesson, topic, result in diagnostic_reviews(user):
-                reviews_by_course.setdefault(lesson.course_id, {}).setdefault(topic, []).append(lesson)
-
-            reports = []
-            for history in by_course.values():
-                latest = history[0]
-                previous = history[1].results if len(history) > 1 else {}
-                topics = []
-                for topic, result in latest.results.items():
-                    prior = previous.get(topic)
-                    topics.append({
-                        "name": topic,
-                        "result": result,
-                        "previous": prior if prior and prior["total"] == result["total"] else None,
-                        "lessons": reviews_by_course.get(latest.course_id, {}).get(topic, []),
-                    })
-                reports.append({"attempt": latest, "topics": topics})
-            context["reports"] = reports
             return render(request, "dashboard/student.html", context)
         if section in {"overview", "recommended"}:
             context["diagnostic_reviews"] = diagnostic_reviews(user)
@@ -123,7 +99,7 @@ def index(request):
                 for name, result in attempt.results.items():
                     totals = topics.setdefault(name, {"students": 0, "review": 0})
                     totals["students"] += 1
-                    totals["review"] += int(result["correct"] < result["total"])
+                    totals["review"] += int(result["correct"] * 100 < 70 * result["total"])
             context["insights"] = [
                 (course, sorted(
                     summaries.get(course.pk, {}).items(),

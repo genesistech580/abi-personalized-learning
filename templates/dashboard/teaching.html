@@ -24,6 +24,8 @@
 <ul>{% for lesson, completion in lesson_states %}<li>{{ lesson.title }} · {{ lesson.get_status_display }} · {% if completion %}Completed{% if completion.completed_at %} {{ completion.completed_at|date:"M j, Y H:i" }}{% endif %}{% else %}Not completed{% endif %}</li>{% empty %}<li>No lessons.</li>{% endfor %}</ul>
 <h2>Quiz attempts</h2>
 <ul>{% for attempt in attempts %}<li>{{ attempt.stage }} · {{ attempt.correct_count }}/{{ attempt.question_count }} · {{ attempt.submitted_at|date:"M j, Y H:i" }}</li>{% empty %}<li>No attempts.</li>{% endfor %}</ul>
+<h2>Topic performance</h2><ul>{% for topic in topic_profile.topics %}<li>{{ topic.name }} · {{ topic.score|floatformat:0 }}% · {{ topic.category }}{% if topic.change is not None %} · {{ topic.change|floatformat:1 }} percentage-point change{% endif %}</li>{% empty %}<li>No topic results yet.</li>{% endfor %}</ul>
+<h2>Learning resources</h2><ul>{% for progress in resource_activity %}<li>{{ progress.resource.title }} · {% if progress.completed_at %}Completed {{ progress.completed_at|date:"M j, Y H:i" }}{% else %}Opened {{ progress.last_opened_at|date:"M j, Y H:i" }}{% endif %}</li>{% empty %}<li>No resource activity yet.</li>{% endfor %}</ul>
 <h2>Review topics</h2>
 <ul>{% for topic in weak_topics %}<li>{{ topic }}</li>{% empty %}<li>No review topics recorded.</li>{% endfor %}</ul>
 {% if form %}<h2>Send feedback</h2>

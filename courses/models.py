@@ -89,3 +89,46 @@ class LessonVisit(models.Model):
             models.UniqueConstraint(fields=("lesson", "student"), name="unique_lesson_visit")
         ]
 
+
+
+class LearningResource(models.Model):
+    class Difficulty(models.TextChoices):
+        FOUNDATION = "foundation", "Foundational"
+        REVISION = "revision", "Revision"
+        INTERMEDIATE = "intermediate", "Intermediate"
+        ADVANCED = "advanced", "Advanced"
+
+    class Kind(models.TextChoices):
+        NOTES = "notes", "Notes / PDF"
+        VIDEO = "video", "Tutorial video"
+        EXAMPLE = "example", "Worked example"
+        PRACTICE = "practice", "Practice questions"
+        CODE = "programming", "Programming exercise"
+        REVISION = "revision", "Revision activity"
+
+    course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name="resources")
+    title = models.CharField(max_length=200)
+    topic = models.CharField(max_length=80)
+    difficulty = models.CharField(max_length=12, choices=Difficulty.choices)
+    kind = models.CharField(max_length=12, choices=Kind.choices)
+    content = models.TextField(blank=True)
+    url = models.URLField(blank=True)
+    attachment = models.FileField(upload_to="learning-resources/", blank=True)
+    status = models.CharField(max_length=10, default="draft", choices=[("draft", "Draft"), ("published", "Published"), ("archived", "Archived")])
+
+    class Meta:
+        ordering = ("topic", "difficulty", "pk")
+
+    def __str__(self):
+        return self.title
+
+
+class ResourceProgress(models.Model):
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    resource = models.ForeignKey(LearningResource, on_delete=models.PROTECT, related_name="progress_records")
+    first_opened_at = models.DateTimeField(auto_now_add=True)
+    last_opened_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=("student", "resource"), name="unique_resource_progress")]

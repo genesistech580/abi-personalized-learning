@@ -55,7 +55,7 @@ def learning_assistant(request):
         topics = {}
         for attempt in latest_attempts:
             for name, result in attempt.results.items():
-                if result["correct"] < result["total"]:
+                if result["correct"] * 100 < 70 * result["total"]:
                     topics[name] = topics.get(name, 0) + 1
         context.update(
             diagnostic_participants=len(latest_attempts),

@@ -1,3 +1,4 @@
+from courses.resources import resources, resource_detail
 from dashboard import adminops
 from dashboard.releases import system_version
 from django.conf import settings
@@ -22,6 +23,10 @@ from dashboard.views import create_record, index
 
 
 urlpatterns = [
+    path("courses/<int:pk>/resources/", resources, name="course_resources"),
+    path("courses/<int:pk>/resources/<int:resource_id>/edit/", resources, name="edit_resource"),
+    path("resources/<int:pk>/", resource_detail, name="resource_detail"),
+    path("resources/<int:pk>/pdf/", resource_detail, {"download": True}, name="resource_pdf"),
     path("management/<str:section>/", adminops.hub, name="admin_hub"),
     path("management/student/<int:pk>/", adminops.student, name="admin_student"),
     path("management/enrollment/<int:pk>/", adminops.enrollment, name="admin_enrollment"),

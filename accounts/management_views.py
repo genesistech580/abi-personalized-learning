@@ -12,7 +12,7 @@ from .profile import ProfileForm
 
 class AccountEditForm(ProfileForm):
     class Meta(ProfileForm.Meta):
-        fields = ("username", "first_name", "last_name", "email", "department", "is_active", "photo")
+        fields = ("username", "first_name", "last_name", "email", "department", "programme", "level", "is_active", "photo")
 
 
 @login_required

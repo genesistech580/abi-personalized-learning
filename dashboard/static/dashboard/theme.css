@@ -188,3 +188,8 @@ header .topbar {
 #chat-error {color:#a6192e;}
 #chat-form button:disabled {opacity:.65; cursor:wait;}
 #chat-form textarea {width:100%; box-sizing:border-box;}
+
+.topic-recommendation {padding:18px 0;border-top:1px solid #e3e8f0;}
+.topic-recommendation h3 {display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;}
+.topic-score {font-size:.9rem;font-weight:normal;color:#526277;}
+.topic-recommendation progress {width:100%;max-width:420px;}
