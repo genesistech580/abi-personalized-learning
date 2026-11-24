@@ -3,6 +3,7 @@ from django.db import transaction
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.db.models.deletion import ProtectedError
 
+permanent_delete_scope = ContextVar("course_delete_scope", default=frozenset())
 actor_context = ContextVar("audit_actor", default=None)
 TRACKED = {"accounts.user", "courses.course", "courses.enrollment", "courses.lesson", "courses.learningresource",
            "assessments.assessment", "assessments.diagnosticquestion", "assessments.diagnosticattempt",
@@ -47,6 +48,8 @@ def after_save(sender, instance, created, **kwargs):
 
 
 def protect_history(sender, instance, **kwargs):
+    if (sender._meta.label_lower, instance.pk) in permanent_delete_scope.get():
+        return
     if sender._meta.label_lower in {"accounts.user", "courses.course", "courses.enrollment",
                                     "assessments.diagnosticattempt", "assessments.submission", "dashboard.auditevent", "dashboard.consentevent"}:
         raise ProtectedError("Archive, deactivate or withdraw this record to preserve learning history.", [instance])

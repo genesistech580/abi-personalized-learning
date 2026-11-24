@@ -114,6 +114,8 @@ def manage_course(request, pk, delete=False):
         raise PermissionDenied
 
     course = get_object_or_404(courses, pk=pk)
+    if delete and user.role == User.Role.ADMINISTRATOR:
+        return redirect("permanent_delete_course", pk=course.pk)
     if delete:
         if request.method == "POST":
             course.delete()
@@ -146,3 +148,25 @@ def enroll_course(request, pk):
         return redirect("diagnostic", pk=course.pk)
     return redirect("learning_path", pk=course.pk)
 
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def delete_course_permanently(request, pk):
+    from .deletion import permanently_delete_course, course_delete_counts
+    if request.user.role != User.Role.ADMINISTRATOR:
+        raise PermissionDenied
+    course = get_object_or_404(Course, pk=pk)
+    form = forms.Form(request.POST if request.method == "POST" else None)
+    form.fields["confirmation"] = forms.CharField(label="Type the course code to confirm", max_length=20)
+    if request.method == "POST" and form.is_valid():
+        if form.cleaned_data["confirmation"] != course.code:
+            form.add_error("confirmation", "Enter the exact course code shown above.")
+        else:
+            permanently_delete_course(course.pk, request.user)
+            messages.success(request, "Course permanently deleted.")
+            from django.urls import reverse
+            return redirect(reverse("admin_hub", args=["courses"]))
+    return render(request, "courses/permanent_delete.html", {
+        "course": course, "form": form, "counts": course_delete_counts(course),
+    })

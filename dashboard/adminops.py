@@ -167,7 +167,7 @@ def hub(request, section='students'):
             courses = courses.filter(archived_at__isnull=status == 'active')
         source_page = paged(request, courses)
         for course in source_page['page_obj']:
-            rows.append({'label': str(course), 'detail': course.lecturer.username, 'status': 'Archived' if course.archived_at else 'Active', 'links': [('Edit', link('edit_course', course.pk)), ('Students', link('course_report', course.pk)), ('Content', link('admin_hub', 'content') + '?course=' + str(course.pk)), ('Resources', link('course_resources', course.pk)), ('Restore' if course.archived_at else 'Archive', link('admin_course_state', course.pk))]})
+            rows.append({'label': str(course), 'detail': course.lecturer.username, 'status': 'Archived' if course.archived_at else 'Active', 'links': [('Edit', link('edit_course', course.pk)), ('Students', link('course_report', course.pk)), ('Content', link('admin_hub', 'content') + '?course=' + str(course.pk)), ('Resources', link('course_resources', course.pk)), ('Restore' if course.archived_at else 'Archive', link('admin_course_state', course.pk)), ('Delete', link('permanent_delete_course', course.pk))]})
     elif section == 'enrollments':
         records = Enrollment.objects.select_related('course', 'student').order_by('course__code', 'student__username')
         if q:

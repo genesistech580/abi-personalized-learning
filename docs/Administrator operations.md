@@ -92,3 +92,12 @@ banks of 50 questions each. It does not overwrite an existing DSA200 course and 
 not create synthetic student results or claim pilot effectiveness. The assigned lecturer
 must review the questions and confirm comparable difficulty under Quiz review before
 the follow-up quiz is enabled. Administrators may reassign the lecturer using Edit course.
+
+## Permanent course deletion
+Administrators can use Courses → Delete, review the affected record counts and type
+the exact course code. This permanently removes the selected course and related learning
+records, including resource progress and course-specific survey responses. Accounts and
+unrelated courses are retained, and an audit event records the administrator and course ID.
+Archive remains available for closing access while retaining history. Lecturers cannot use
+the permanent-delete route. Existing private backups retain earlier snapshots until their
+retention period expires; live deletion does not erase historical backups immediately.

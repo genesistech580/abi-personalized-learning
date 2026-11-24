@@ -15,7 +15,7 @@ from assessments.evaluation import pilot_evaluation
 from assessments.feedback import pilot_feedback
 from assessments.outcomes import outcomes
 from assessments.views import grade, review, submit
-from courses.views import add_lesson, enroll_course, learning_path, manage_course, read_lesson
+from courses.views import delete_course_permanently, add_lesson, enroll_course, learning_path, manage_course, read_lesson
 from dashboard.teaching import teaching, edit_content, content_preview, publish_check
 from dashboard.assistant import learning_assistant
 from dashboard.forms import AssessmentForm, CourseForm, EnrollmentForm, LecturerForm
@@ -23,6 +23,7 @@ from dashboard.views import create_record, index
 
 
 urlpatterns = [
+    path("management/course/<int:pk>/delete/", delete_course_permanently, name="permanent_delete_course"),
     path("courses/<int:pk>/resources/", resources, name="course_resources"),
     path("courses/<int:pk>/resources/<int:resource_id>/edit/", resources, name="edit_resource"),
     path("resources/<int:pk>/", resource_detail, name="resource_detail"),
