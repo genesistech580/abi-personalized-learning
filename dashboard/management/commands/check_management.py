@@ -49,3 +49,10 @@ class Command(BaseCommand):
                     raise CommandError("Student learning profile did not render.")
                 count += 1
         self.stdout.write(self.style.SUCCESS(f"{count} administrator/student read-only screens rendered successfully."))
+
+        from courses.readiness import dsa_readiness
+        readiness = dsa_readiness()
+        if readiness["exists"]:
+            for key in ["active", "lecturer_active", "topics", "lessons", "resources", "diagnostic_questions", "followup_questions", "matched_coverage", "approved"]:
+                self.stdout.write("DSA readiness " + key + ": " + str(readiness[key]))
+            self.stdout.write("DSA missing resource levels: " + str(len(readiness["missing_resources"])))

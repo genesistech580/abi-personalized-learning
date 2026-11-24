@@ -134,3 +134,15 @@ class AdaptiveLearningTests(TestCase):
         response=self.client.get(reverse("diagnostic",args=[self.course.pk])+"?stage=followup")
         self.assertEqual(response.status_code,302)
         self.assertFalse(self.student.diagnostic_attempts.exists())
+
+    def test_readiness_reports_pending_approval_without_changing_course(self):
+        from courses.readiness import dsa_readiness
+        call_command("prepare_dsa", lecturer=self.teacher.username, stdout=io.StringIO())
+        result = dsa_readiness()
+        self.assertEqual(result["topics"], 5)
+        self.assertEqual(result["diagnostic_questions"], 50)
+        self.assertEqual(result["followup_questions"], 50)
+        self.assertTrue(result["matched_coverage"])
+        self.assertFalse(result["approved"])
+        self.assertEqual(result["missing_resources"], [])
+        self.assertEqual(Course.objects.get(code="DSA200").quiz_approval, "")
