@@ -40,7 +40,7 @@ def teaching(request, pk=None, student_id=None):
         return render(request, "dashboard/teaching.html", context)
     course = get_object_or_404(courses, pk=pk)
     context["course"] = course
-    roster = course.enrollments.select_related("student").order_by("student__username")
+    roster = course.enrollments.filter(student__is_demo=False).select_related("student").order_by("student__username")
     lessons = course.lessons.filter(status="published")
     context["lesson_count"] = lessons.count()
     rows = []

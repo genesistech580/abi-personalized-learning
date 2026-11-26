@@ -9,6 +9,8 @@ class LearningUserManager(UserManager):
 
 
 class User(AbstractUser):
+    is_demo = models.BooleanField(default=False, editable=False)
+
     programme = models.CharField(max_length=120, default="ICT in Education")
     level = models.PositiveSmallIntegerField(default=200, choices=[(200, "Level 200")])
 

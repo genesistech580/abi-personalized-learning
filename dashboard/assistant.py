@@ -47,7 +47,7 @@ def learning_assistant(request):
             next_lesson=course.lessons.filter(status="published").annotate(done=Exists(completions)).filter(done=False).first(),
         )
     elif course:
-        attempts = DiagnosticAttempt.objects.filter(
+        attempts = DiagnosticAttempt.objects.filter(student__is_demo=False, 
             course=course, course__enrollments__student_id=F("student_id")
         )
         latest_ids = attempts.filter(student_id=OuterRef("student_id")).order_by("-pk").values("pk")[:1]

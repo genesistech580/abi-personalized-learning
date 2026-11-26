@@ -21,7 +21,7 @@ def summarize(pairs):
 @login_required
 def outcomes(request):
     user = request.user
-    attempts = DiagnosticAttempt.objects.filter(course__enrollments__student_id=F("student_id"))
+    attempts = DiagnosticAttempt.objects.filter(student__is_demo=False, course__enrollments__student_id=F("student_id"))
     if user.role == User.Role.STUDENT:
         attempts = attempts.filter(student=user)
     elif user.role == User.Role.LECTURER:

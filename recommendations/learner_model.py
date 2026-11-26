@@ -9,7 +9,7 @@ def evaluate(course_id):
     peers = defaultdict(dict)
     errors = []
     learners = set()
-    for attempt in DiagnosticAttempt.objects.filter(course_id=course_id).exclude(
+    for attempt in DiagnosticAttempt.objects.filter(student__is_demo=False, course_id=course_id).exclude(
         comparison_key=""
     ).order_by("pk"):
         key = (attempt.student_id, attempt.comparison_key)
@@ -57,7 +57,7 @@ def rank_reviews(student, reviews):
             return result["correct"] / result["total"]
         values = [
             attempt.results[topic]
-            for attempt in DiagnosticAttempt.objects.filter(course=lesson.course)
+            for attempt in DiagnosticAttempt.objects.filter(student__is_demo=False, course=lesson.course)
             .exclude(student=student).order_by("pk")
             if topic in attempt.results
         ]

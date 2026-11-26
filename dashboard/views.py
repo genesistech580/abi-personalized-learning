@@ -86,7 +86,7 @@ def index(request):
         elif section == "courses":
             context["courses"] = courses
         elif section == "insights":
-            attempts = DiagnosticAttempt.objects.filter(
+            attempts = DiagnosticAttempt.objects.filter(student__is_demo=False, 
                 course__lecturer=user,
                 course__enrollments__student_id=F("student_id"),
             )
@@ -125,7 +125,7 @@ def index(request):
         context["section"] = section
         context["lecturer_feedback"] = LearningFeedback.objects.filter(student=user, course__enrollments__student=user).select_related("course", "lesson").order_by("-pk")[:20]
         if section == "pilot":
-            learner_attempts = DiagnosticAttempt.objects.filter(
+            learner_attempts = DiagnosticAttempt.objects.filter(student__is_demo=False, 
                 course__enrollments__student_id=F("student_id")
             ).values("course_id", "student_id").annotate(attempt_count=Count("pk"))
             summaries = {}
@@ -148,7 +148,7 @@ def index(request):
         context["enrollments"] = Enrollment.objects.select_related("course", "student").order_by(
             "course__code", "student__username"
         )
-        students = User.objects.filter(role=User.Role.STUDENT).order_by("username")
+        students = User.objects.filter(role=User.Role.STUDENT, is_demo=False).order_by("username")
         lecturers = (
             User.objects.filter(role=User.Role.LECTURER)
             .annotate(student_count=Count("teaching_courses__enrollments__student", distinct=True))

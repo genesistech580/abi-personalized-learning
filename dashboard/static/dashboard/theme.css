@@ -193,3 +193,9 @@ header .topbar {
 .topic-recommendation h3 {display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;}
 .topic-score {font-size:.9rem;font-weight:normal;color:#526277;}
 .topic-recommendation progress {width:100%;max-width:420px;}
+
+.topic-chart {margin:18px 0;max-width:720px;}
+.topic-chart svg {display:block;width:100%;height:auto;background:#f7f9fc;border-radius:8px;}
+.topic-chart text {font:12px Tahoma,sans-serif;fill:#526277;}
+.topic-chart figcaption {font-size:.9rem;color:#526277;margin-bottom:6px;}
+@media print {header,.dashboard-sidebar,.dashboard-menu-toggle,.admin-filters,footer,.no-print{display:none!important}.dashboard-layout{display:block!important}.panel{break-inside:avoid;box-shadow:none!important}body{background:white!important}.dashboard-content{width:100%!important}}

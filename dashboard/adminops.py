@@ -144,7 +144,7 @@ def hub(request, section='students'):
     rows = []
     source_page = None
     if section in {'students', 'lecturers'}:
-        people = User.objects.filter(role='student' if section == 'students' else 'lecturer').order_by('username')
+        people = User.objects.filter(role='student' if section == 'students' else 'lecturer', is_demo=False).order_by('username')
         if q:
             people = people.filter(Q(username__icontains=q) | Q(email__icontains=q) | Q(department__icontains=q))
         if selected:
@@ -169,7 +169,7 @@ def hub(request, section='students'):
         for course in source_page['page_obj']:
             rows.append({'label': str(course), 'detail': course.lecturer.username, 'status': 'Archived' if course.archived_at else 'Active', 'links': [('Edit', link('edit_course', course.pk)), ('Students', link('course_report', course.pk)), ('Content', link('admin_hub', 'content') + '?course=' + str(course.pk)), ('Resources', link('course_resources', course.pk)), ('Restore' if course.archived_at else 'Archive', link('admin_course_state', course.pk)), ('Delete', link('permanent_delete_course', course.pk))]})
     elif section == 'enrollments':
-        records = Enrollment.objects.select_related('course', 'student').order_by('course__code', 'student__username')
+        records = Enrollment.objects.filter(student__is_demo=False).select_related('course', 'student').order_by('course__code', 'student__username')
         if q:
             records = records.filter(Q(student__username__icontains=q) | Q(course__code__icontains=q))
         if selected:
@@ -200,7 +200,7 @@ def hub(request, section='students'):
             rows.append({'label': item['label'], 'detail': detail, 'status': item['status'].capitalize(),
                          'links': [('Preview', link('content_preview', item['kind'], item['pk'])), ('Edit', link('edit_content', item['kind'], item['pk']))]})
     elif section == 'consent':
-        people = User.objects.filter(role='student').select_related('researchconsent').order_by('username')
+        people = User.objects.filter(role='student', is_demo=False).select_related('researchconsent').order_by('username')
         if q:
             people = people.filter(username__icontains=q)
         if selected:
@@ -262,7 +262,7 @@ class EnrollmentForm(forms.Form):
 @administrator
 @require_http_methods(['GET', 'POST'])
 def enrollment(request, pk):
-    record = get_object_or_404(Enrollment.objects.select_related('course', 'student'), pk=pk)
+    record = get_object_or_404(Enrollment.objects.filter(student__is_demo=False).select_related('course', 'student'), pk=pk)
     form = EnrollmentForm(request.POST if request.method == 'POST' else None, initial={'course': record.course_id, 'active': not record.withdrawn_at})
     form.fields['course'].queryset = Course.objects.filter(Q(archived_at__isnull=True) | Q(pk=record.course_id)).order_by('code')
     if request.method == 'POST' and form.is_valid():
@@ -338,11 +338,11 @@ def consent(request):
     return render(request, 'dashboard/consent.html', {'consent': record, 'consent_history': ConsentEvent.objects.filter(student=request.user)[:20]})
 
 def research_rows(data):
-    consents = ResearchConsent.objects.filter(consented_at__isnull=False, withdrawn_at__isnull=True, student__is_active=True)
+    consents = ResearchConsent.objects.filter(consented_at__isnull=False, withdrawn_at__isnull=True, student__is_active=True, student__is_demo=False)
     if data.get('cohort'):
         consents = consents.filter(cohort=data['cohort'])
     consent_by_student = {item.student_id: item for item in consents}
-    attempts = DiagnosticAttempt.objects.filter(student_id__in=consent_by_student).select_related('course').order_by('submitted_at', 'pk')
+    attempts = DiagnosticAttempt.objects.filter(student__is_demo=False, student_id__in=consent_by_student).select_related('course').order_by('submitted_at', 'pk')
     if data.get('course'):
         attempts = attempts.filter(course=data['course'])
     attempts = date_range(attempts, 'submitted_at', data)
@@ -380,7 +380,7 @@ def research_rows(data):
 
 
 def research_model_metrics(data):
-    attempts = DiagnosticAttempt.objects.filter(
+    attempts = DiagnosticAttempt.objects.filter(student__is_demo=False, 
         student__researchconsent__consented_at__isnull=False,
         student__researchconsent__withdrawn_at__isnull=True,
         student__is_active=True,

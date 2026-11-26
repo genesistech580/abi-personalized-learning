@@ -8,7 +8,7 @@ actor_context = ContextVar("audit_actor", default=None)
 TRACKED = {"accounts.user", "courses.course", "courses.enrollment", "courses.lesson", "courses.learningresource",
            "assessments.assessment", "assessments.diagnosticquestion", "assessments.diagnosticattempt",
            "assessments.submission", "assessments.learningfeedback", "assessments.pilotfeedback",
-           "dashboard.researchconsent", "dashboard.consentevent"}
+           "dashboard.researchconsent", "dashboard.pilotstudy", "dashboard.consentevent"}
 
 
 class AuditMiddleware:

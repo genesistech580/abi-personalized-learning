@@ -27,8 +27,11 @@ def normalize(topic):
     return "searching and sorting" if normalized == "searching and sorting algorithms" else normalized
 
 
-def topic_plan(student, course):
-    history = list(DiagnosticAttempt.objects.filter(student=student, course=course).order_by("pk"))
+def topic_plan(student, course, through=None):
+    attempts = DiagnosticAttempt.objects.filter(student=student, course=course)
+    if through is not None:
+        attempts = attempts.filter(pk__lte=through)
+    history = list(attempts.order_by("pk"))
     if not history:
         return {"course": course, "topics": [], "needs_diagnostic": True, "followup_ready": False}
     latest = history[-1]
@@ -45,11 +48,30 @@ def topic_plan(student, course):
         prior_score = 100 * prior["correct"] / prior["total"] if prior and prior["total"] else None
         matching = [resource for resource in resources if normalize(resource.topic) == normalize(name) and resource.difficulty == band["difficulty"]]
         priority = {"notes": 0, "practice": 1, "example": 2, "video": 3} if band["category"] == "Poor" else {"example": 0, "practice": 1, "notes": 2, "video": 3}
-        matching.sort(key=lambda item: priority.get(item.kind, 4))
+        comparable_history = [attempt for attempt in history if latest.comparison_key and attempt.comparison_key == latest.comparison_key and name in attempt.results and attempt.results[name]["total"]]
+        series = [{"score": 100 * attempt.results[name]["correct"] / attempt.results[name]["total"], "stage": attempt.stage, "date": attempt.submitted_at, "label": str(number+1)} for number, attempt in enumerate(comparable_history)]
+        reason = "Resources match your latest topic score."
+        recent = [item["score"] for item in series[-3:]]
+        if len(recent) >= 2:
+            if recent[-1] > recent[-2]:
+                reason = "Your comparable topic score increased; the resource level follows your latest result."
+            elif recent[-1] < 70 and recent[-2] < 70:
+                reason = "Repeated results remain below 70%; extra foundational support has been added."
+                extra = [item for item in resources if normalize(item.topic) == normalize(name) and item.difficulty == "foundation" and item.kind in {"example", "practice"} and item not in matching]
+                matching.extend(extra[:2])
+        matching.sort(key=lambda item: (item.pk in done, item.difficulty != band["difficulty"], priority.get(item.kind, 4)))
+        target = [item for item in matching if item.difficulty == band["difficulty"]]
+        all_done = bool(target) and all(item.pk in done for item in target)
+        if all_done:
+            reason += " Your matching activities are complete; use the follow-up quiz to check your understanding."
+        visible_series = series[-8:]
+        chart_points = [{**item, "x": 45 + number * (500 / max(1, len(visible_series)-1)), "y": 140 - item["score"] * 1.15} for number, item in enumerate(visible_series)]
+        chart_line = " ".join(f"{item['x']:.1f},{item['y']:.1f}" for item in chart_points)
         # A topic-specific published lesson remains a useful fallback if tagged resources are absent.
         lessons = list(course.lessons.filter(status="published", diagnostic_questions__topic__iexact=name).distinct()) if not matching else []
         topics.append({"name": name, **band, "previous": prior_score,
             "change": band["score"] - prior_score if prior_score is not None else None,
+            "reason": reason, "all_done": all_done, "series": chart_points, "chart_line": chart_line,
             "resources": [{"item": item, "completed": item.pk in done} for item in matching], "lessons": lessons})
     topics.sort(key=lambda item: (item["score"], item["name"].casefold()))
     return {"course": course, "topics": topics, "attempt": latest, "attempt_count": len(history),

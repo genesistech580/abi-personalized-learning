@@ -1,4 +1,5 @@
 from courses.resources import resources, resource_detail
+from dashboard.demonstration import demonstration
 from dashboard import adminops
 from dashboard.releases import system_version
 from django.conf import settings
@@ -23,6 +24,7 @@ from dashboard.views import create_record, index
 
 
 urlpatterns = [
+    path("demonstration/", demonstration, name="demonstration"),
     path("management/course/<int:pk>/delete/", delete_course_permanently, name="permanent_delete_course"),
     path("courses/<int:pk>/resources/", resources, name="course_resources"),
     path("courses/<int:pk>/resources/<int:resource_id>/edit/", resources, name="edit_resource"),

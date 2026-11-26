@@ -1,15 +1,16 @@
 {% for plan in learning_plans %}
-<section class="panel" aria-labelledby="plan-{{ plan.course.pk }}"><h2 id="plan-{{ plan.course.pk }}">{{ plan.course.title }}</h2>
+<section class="panel" aria-labelledby="plan-{{ plan.course.pk }}"><h2 id="plan-{{ plan.course.pk }}">{{ plan.course.title }}{% if plan.demo_name %} · {{ plan.demo_name }}{% endif %}</h2>
 {% if plan.needs_diagnostic %}<p>Start with a diagnostic quiz to build your learning profile.</p><a class="button" href="{% url 'diagnostic' plan.course.pk %}">Take diagnostic quiz</a>
 {% else %}
 <p class="muted">Based on your latest {{ plan.attempt.stage }} result · {{ plan.attempt_count }} attempt{{ plan.attempt_count|pluralize }}. Recommendations update after each quiz.</p>
 {% for topic in plan.topics %}<article class="topic-recommendation"><h3>{{ topic.name }} <span class="topic-score">{{ topic.score|floatformat:0 }}% · {{ topic.category }}</span></h3>
 <progress value="{{ topic.score }}" max="100" aria-label="{{ topic.name }} score"></progress>
 {% if topic.previous is not None %}<p>Diagnostic {{ topic.previous|floatformat:0 }}% → Follow-up {{ topic.score|floatformat:0 }}% · {{ topic.change|floatformat:1 }} percentage points</p>{% endif %}
-{% if not performance_only %}<p>{{ topic.advice }}</p><ul class="dashboard-roster">
+{% include "dashboard/topic_chart.html" %}
+{% if not performance_only %}<p>{{ topic.advice }}</p><p class="muted">{{ topic.reason }}</p><ul class="dashboard-roster">
 {% for resource in topic.resources %}<li><div><a href="{% url 'resource_detail' resource.item.pk %}">{{ resource.item.title }}</a><div class="muted">{{ resource.item.get_kind_display }} · {{ resource.item.get_difficulty_display }}{% if resource.completed %} · Complete{% endif %}</div></div></li>
 {% empty %}{% for lesson in topic.lessons %}<li><a href="{% url 'read_lesson' lesson.pk %}">Topic lesson: {{ lesson.title }}</a></li>{% empty %}<li>Your lecturer has not published matching {{ topic.difficulty }} resources yet.</li>{% endfor %}{% endfor %}</ul>{% endif %}
 </article>{% endfor %}
-<div class="actions"><a href="{% url 'course_resources' plan.course.pk %}">All course resources</a>{% if plan.followup_ready %}<a class="button" href="{% url 'diagnostic' plan.course.pk %}?stage=followup">Take follow-up quiz</a>{% else %}<span class="muted">Follow-up quiz awaits lecturer review.</span>{% endif %}</div>
+<div class="actions"><a href="{% url 'course_resources' plan.course.pk %}">All course resources</a>{% if plan.followup_ready and not demo_mode %}<a class="button" href="{% url 'diagnostic' plan.course.pk %}?stage=followup">Take follow-up quiz</a>{% elif not demo_mode %}<span class="muted">Follow-up quiz awaits lecturer review.</span>{% endif %}</div>
 {% endif %}</section>
 {% empty %}<p>Enroll in a course to start your learning profile.</p><a href="{% url 'dashboard' %}?section=catalog">Browse courses</a>{% endfor %}

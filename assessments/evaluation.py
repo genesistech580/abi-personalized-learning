@@ -18,7 +18,7 @@ def pilot_evaluation(request):
     if request.user.role != User.Role.ADMINISTRATOR:
         raise PermissionDenied
 
-    attempts = DiagnosticAttempt.objects.filter(
+    attempts = DiagnosticAttempt.objects.filter(student__is_demo=False, 
         course__code="PILOT-JAVA"
     ).exclude(quiz_version="").order_by("pk")
     first_results = {}

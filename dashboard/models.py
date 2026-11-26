@@ -3,6 +3,8 @@ from django.db import models
 
 
 class ResearchConsent(models.Model):
+    study = models.ForeignKey("PilotStudy", null=True, blank=True, on_delete=models.SET_NULL)
+
     student = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     cohort = models.CharField(max_length=80, blank=True)
     information_version = models.CharField(max_length=20, default="2026-11-19")
@@ -42,3 +44,17 @@ class ServiceStatus(models.Model):
     successful = models.BooleanField()
     summary = models.CharField(max_length=160)
     checked_at = models.DateTimeField(auto_now=True)
+
+
+class PilotStudy(models.Model):
+    course = models.ForeignKey("courses.Course", on_delete=models.PROTECT, related_name="pilot_studies")
+    title = models.CharField(max_length=200)
+    group_code = models.CharField(max_length=80, unique=True)
+    target_participants = models.PositiveSmallIntegerField(default=20)
+    approval_note = models.TextField(blank=True)
+    approval_recorded_at = models.DateTimeField(null=True, blank=True)
+    active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
