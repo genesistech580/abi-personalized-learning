@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from assessments.models import DiagnosticAttempt, Submission, PilotFeedback
 from dashboard.auditing import permanent_delete_scope
-from dashboard.models import AuditEvent
+from dashboard.models import AuditEvent, PilotStudy
 from .models import Course, Enrollment, LearningResource, ResourceProgress
 
 logger = logging.getLogger(__name__)
@@ -39,6 +39,7 @@ def permanently_delete_course(course_id, actor):
         # Remove explicit PROTECT dependents before the remaining course cascade.
         ResourceProgress.objects.filter(resource__course=course).delete()
         PilotFeedback.objects.filter(course=course).delete()
+        PilotStudy.objects.filter(course=course).delete()
         LearningResource.objects.filter(course=course).delete()
         AuditEvent.objects.create(actor=actor, actor_label=actor.username, action="delete",
             model_label="courses.course", object_id=str(course.pk),
