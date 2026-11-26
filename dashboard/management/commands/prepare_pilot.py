@@ -24,9 +24,11 @@ class Command(BaseCommand):
                 ("advanced","programming","Extension project",PACK[i]["challenge"]),
                 ("foundation","video","University lecture",PACK[i]["objectives"])]:
                 item,_=LearningResource.objects.get_or_create(course=course,title=topic+" - "+label,topic=topic,difficulty=level,kind=kind,defaults={"content":content,"status":"published","url":VIDEOS[i] if kind=="video" else ""})
-                if kind=="notes" and not item.attachment:
+                if kind=="notes":
                     path=Path("courses/content/pdfs")/f"dsa-topic-{i+1}.pdf"
-                    item.attachment.save(path.name,ContentFile(path.read_bytes()))
+                    data=path.read_bytes()
+                    if not item.attachment or item.attachment.read()!=data:
+                        item.attachment.save(path.name,ContentFile(data))
         study,created=PilotStudy.objects.get_or_create(group_code="UEW-DSA-PILOT",defaults={"course":course,"title":"UEW DSA pilot","active":True,"approval_recorded_at":timezone.now(),"approval_note":"Approval reported by project owner on 26 November 2026."})
         if created:
             course.quiz_approval=signature(course);course.save(update_fields=["quiz_approval"])

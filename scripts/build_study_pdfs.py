@@ -34,6 +34,7 @@ def footer(canvas, doc):
 def build(name, title, blocks):
     story=[Paragraph(escape(title),styles["TitleTahoma"])]
     for heading, body, code in blocks:
+        if heading in {"Python practice", "Analysis plan"}: story.append(PageBreak())
         if heading: story.append(Paragraph(escape(heading),styles["HeadingTahoma"]))
         if body: story.append(paragraph(body))
         if code:
