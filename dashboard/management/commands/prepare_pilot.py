@@ -19,9 +19,7 @@ class Command(BaseCommand):
         for i,topic in enumerate(TOPICS):
             for level,kind,label,content in [
                 ("foundation","notes","Study PDF",NOTES[i]),
-                ("revision","example","Worked practice",PACK[i]["worked"]+"
-"+PACK[i]["practice"]+"
-"+PACK[i]["answers"]),
+                ("revision","example","Worked practice",PACK[i]["worked"]+"\n"+PACK[i]["practice"]+"\n"+PACK[i]["answers"]),
                 ("intermediate","programming","Python lab",PACK[i]["code"]),
                 ("advanced","programming","Extension project",PACK[i]["challenge"]),
                 ("foundation","video","University lecture",PACK[i]["objectives"])]:
