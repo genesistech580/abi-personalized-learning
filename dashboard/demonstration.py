@@ -18,3 +18,11 @@ def demonstration(request):
             if attempt:
                 plan=topic_plan(student,course,through=attempt.pk);plan["demo_name"]=student.username;plans.append(plan)
     return render(request,"dashboard/demonstration.html",{"learning_plans":plans,"demo_mode":True,"studies":PilotStudy.objects.all()})
+
+@login_required
+def pilot_guide(request):
+    from pathlib import Path
+    from django.conf import settings
+    from django.http import FileResponse
+    if request.user.role not in {"administrator","lecturer"}: raise PermissionDenied
+    return FileResponse((settings.BASE_DIR/"courses/content/pdfs/pilot-guide.pdf").open("rb"),as_attachment=True,filename="pilot-guide.pdf",content_type="application/pdf")
